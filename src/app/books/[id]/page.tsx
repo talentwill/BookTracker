@@ -7,10 +7,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OutlineView } from "@/components/outline-view"
 import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
+import { NewRoundDialog } from "@/components/new-round-dialog"
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [tab, setTab] = useState("outline")
+  const [roundDialogOpen, setRoundDialogOpen] = useState(false)
   const store = useBookStore()
 
   const book = store.books.find(b => b.id === id)
@@ -71,7 +73,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <RoundSelector
               rounds={store.rounds.filter(r => r.bookId === id)}
               activeRound={activeRound}
-              onNewRound={() => {}}
+              onNewRound={() => setRoundDialogOpen(true)}
             />
           )}
         </div>
@@ -111,6 +113,14 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           onMarkDone={(tocItemId) => store.markDone(tocItemId, roundId)}
         />
       )}
+      <NewRoundDialog
+        open={roundDialogOpen}
+        onOpenChange={setRoundDialogOpen}
+        roundNumber={(store.rounds.filter(r => r.bookId === id).reduce((max, r) => Math.max(max, r.roundNumber), 0)) + 1}
+        onConfirm={(inherit) => {
+          store.startNewRound(id, inherit)
+        }}
+      />
     </div>
   )
 }
