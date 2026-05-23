@@ -1,65 +1,111 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useBookStore } from "@/lib/store"
+import { StatCard } from "@/components/stat-card"
+import { TodayReadingList } from "@/components/today-reading-list"
+import { BookCard } from "@/components/book-card"
+import Link from "next/link"
+
+export default function HomePage() {
+  const store = useBookStore()
+  const today = new Date().toISOString().slice(0, 10)
+
+  const todayItems: Array<{ book: typeof store.books[0]; tocItem: typeof store.tocItems[0]; status: typeof store.chapterStatuses[0] }> = []
+  for (const book of store.books) {
+    const round = store.getActiveRound(book.id)
+    if (!round) continue
+    const statuses = store.chapterStatuses.filter(c => c.roundId === round.id && c.scheduledDate === today)
+    for (const status of statuses) {
+      const tocItem = store.tocItems.find(t => t.id === status.tocItemId)
+      if (tocItem) todayItems.push({ book, tocItem, status })
+    }
+  }
+
+  const todayDone = todayItems.filter(i => i.status.checked).length
+  const todayPending = todayItems.filter(i => !i.status.checked).length
+
+  const readingBooks = store.books
+    .map(book => {
+      const author = store.authors.find(a => a.id === book.authorId)
+      const round = store.getActiveRound(book.id)
+      const items = store.tocItems.filter(t => t.bookId === book.id)
+      const statuses = store.chapterStatuses.filter(c => c.roundId === (round?.id ?? ""))
+      const checkedCount = statuses.filter(s => s.checked).length
+      return { book, author, round, items, statuses, isComplete: items.length > 0 && checkedCount === items.length }
+    })
+    .filter(b => !b.isComplete)
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? "早上好 ☀️" : hour < 18 ? "下午好 🌤️" : "晚上好 🌙"
+  const dateStr = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })
+
+  const streak = calculateStreak(store.chapterStatuses)
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="px-6 py-6">
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold text-[rgba(0,0,0,0.95)]">{greeting}</h1>
+        <p className="mt-0.5 text-sm text-[#615d59]">{dateStr}</p>
+      </div>
+
+      <div className="mb-6 flex gap-3">
+        <StatCard label="今日待读" value={todayPending} sub="章节数" variant="blue" />
+        <StatCard label="今日已完成" value={todayDone} sub={todayDone > 0 ? "继续加油！" : "开始今天的阅读吧"} variant="green" />
+        <StatCard
+          label="在读书籍"
+          value={readingBooks.length}
+          sub={`总进度 ${Math.round(readingBooks.reduce((s, b) => s + (b.statuses.filter(st => st.checked).length / Math.max(b.items.length, 1)) * 100, 0) / Math.max(readingBooks.length, 1))}%`}
+          variant="gray"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <StatCard label="连续阅读" value={streak} sub="天 🔥" variant="gray" />
+      </div>
+
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">今日阅读清单</h2>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <TodayReadingList
+          items={todayItems}
+          onToggle={(tocItemId, roundId) => store.toggleChapter(tocItemId, roundId)}
+        />
+      </div>
+
+      {readingBooks.length > 0 && (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">最近在读</h2>
+            <Link href="/bookshelf" className="text-xs font-medium text-[#097fe8] hover:underline">查看书架 →</Link>
+          </div>
+          <div className="flex gap-3.5 overflow-x-auto pb-2">
+            {readingBooks.slice(0, 5).map(b => (
+              <div key={b.book.id} className="min-w-[180px]">
+                <BookCard book={b.book} author={b.author} round={b.round} items={b.items} statuses={b.statuses} />
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      )}
     </div>
-  );
+  )
+}
+
+function calculateStreak(statuses: Array<{ checked: boolean; checkedAt: number | null }>): number {
+  const checkedDates = new Set<string>()
+  for (const s of statuses) {
+    if (s.checkedAt) {
+      checkedDates.add(new Date(s.checkedAt).toISOString().slice(0, 10))
+    }
+  }
+  let streak = 0
+  const d = new Date()
+  while (true) {
+    const key = d.toISOString().slice(0, 10)
+    if (checkedDates.has(key)) {
+      streak++
+      d.setDate(d.getDate() - 1)
+    } else {
+      break
+    }
+  }
+  return streak
 }
