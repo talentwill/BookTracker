@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useBookStore } from "@/lib/store"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { OutlineView } from "@/components/outline-view"
+import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -101,8 +102,14 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           onToggle={(tocItemId) => store.toggleChapter(tocItemId, roundId)}
         />
       )}
-      {tab === "table" && (
-        <div className="p-6 text-sm text-[#615d59]">表格视图 — 下一个 task 实现</div>
+      {tab === "table" && activeRound && (
+        <TableView
+          items={items}
+          statuses={statuses}
+          round={activeRound}
+          onSchedule={(tocItemId, date) => store.scheduleChapter(tocItemId, roundId, date)}
+          onMarkDone={(tocItemId) => store.markDone(tocItemId, roundId)}
+        />
       )}
     </div>
   )
