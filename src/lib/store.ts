@@ -36,7 +36,8 @@ export const useBookStore = create<BookStore>()(
         let authorId = get().authors.find(a => a.name === authorName)?.id
         if (!authorId) {
           authorId = uuid()
-          set(s => ({ authors: [...s.authors, { id: authorId, name: authorName, createdAt: Date.now() }] }))
+          const newAuthorId = authorId
+          set(s => ({ authors: [...s.authors, { id: newAuthorId, name: authorName, createdAt: Date.now() }] }))
         }
         const book: Book = { id: bookId, title, authorId, tocText, createdAt: Date.now() }
         const items = parseOutline(tocText, bookId)
