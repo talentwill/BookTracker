@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# worktrees
+.worktrees/
+
+# playwright mcp
+.playwright-mcp/
+
+# superpowers docs
+docs/superpowers/

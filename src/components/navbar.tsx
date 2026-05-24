@@ -53,14 +53,23 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Add Book Button */}
-        <Button
-          onClick={() => setDialogOpen(true)}
-          className="text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white shrink-0"
-          size="sm"
-        >
-          + 添加书籍
-        </Button>
+        {/* Right side actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/settings"
+            className="flex items-center justify-center w-8 h-8 rounded-md text-[#615d59] hover:text-[rgba(0,0,0,0.95)] hover:bg-[#f6f5f4] transition-colors"
+            title="设置"
+          >
+            ⚙️
+          </Link>
+          <Button
+            onClick={() => setDialogOpen(true)}
+            className="text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white"
+            size="sm"
+          >
+            + 添加书籍
+          </Button>
+        </div>
         </div>
       </nav>
 

@@ -4,6 +4,17 @@ import { v4 as uuid } from "uuid"
 import type { Author, Book, TocItem, ReadingRound, ChapterStatus } from "./types"
 import { parseOutline } from "./outline-parser"
 
+function getDepth(items: TocItem[], id: string): number {
+  const map = new Map(items.map(i => [i.id, i]))
+  let depth = 0
+  let current = map.get(id)
+  while (current?.parentId) {
+    depth++
+    current = map.get(current.parentId)
+  }
+  return depth
+}
+
 interface BookStore {
   authors: Author[]
   books: Book[]
@@ -11,7 +22,7 @@ interface BookStore {
   rounds: ReadingRound[]
   chapterStatuses: ChapterStatus[]
 
-  addBook: (title: string, authorName: string, tocText: string) => string
+  addBook: (title: string, authorName: string, tocText: string, meta?: { publisher?: string; publishDate?: string; isbn?: string }) => string
   deleteBook: (bookId: string) => void
   toggleChapter: (tocItemId: string, roundId: string) => void
   scheduleChapter: (tocItemId: string, roundId: string, date: string | null) => void
@@ -20,6 +31,13 @@ interface BookStore {
   updateAuthor: (authorId: string, updates: { name?: string; note?: string }) => void
   getActiveRound: (bookId: string) => ReadingRound | undefined
   getChapterStatusForRound: (tocItemId: string, roundId: string) => ChapterStatus | undefined
+  updateBookStatus: (bookId: string, status: Book['readingStatus']) => void
+  updateBookDate: (bookId: string, field: 'startedReadingAt' | 'finishedReadingAt', value: number | null) => void
+  addBookTag: (bookId: string, tag: string) => void
+  removeBookTag: (bookId: string, tag: string) => void
+  updateBookTitle: (bookId: string, title: string) => void
+  updateBookAuthor: (bookId: string, authorName: string) => void
+  replaceBookToc: (bookId: string, items: TocItem[]) => void
 }
 
 export const useBookStore = create<BookStore>()(
@@ -31,7 +49,7 @@ export const useBookStore = create<BookStore>()(
       rounds: [],
       chapterStatuses: [],
 
-      addBook: (title, authorName, tocText) => {
+      addBook: (title, authorName, tocText, meta) => {
         const bookId = uuid()
         let authorId = get().authors.find(a => a.name === authorName)?.id
         if (!authorId) {
@@ -39,7 +57,7 @@ export const useBookStore = create<BookStore>()(
           const newAuthorId = authorId
           set(s => ({ authors: [...s.authors, { id: newAuthorId, name: authorName, createdAt: Date.now() }] }))
         }
-        const book: Book = { id: bookId, title, authorId, tocText, createdAt: Date.now() }
+        const book: Book = { id: bookId, title, authorId, tocText, createdAt: Date.now(), ...meta }
         const items = parseOutline(tocText, bookId)
         const roundId = uuid()
         const round: ReadingRound = { id: roundId, bookId, roundNumber: 1, startedAt: Date.now(), status: "active" }
@@ -132,6 +150,151 @@ export const useBookStore = create<BookStore>()(
         set(s => ({
           authors: s.authors.map(a => a.id === authorId ? { ...a, ...updates } : a),
         }))
+      },
+
+      updateBookStatus: (bookId, status) => {
+        set(s => ({
+          books: s.books.map(b => {
+            if (b.id !== bookId) return b
+            const updates: Partial<Book> = { readingStatus: status }
+            if (status === 'reading' && !b.startedReadingAt) {
+              updates.startedReadingAt = Date.now()
+            }
+            if (status === 'finished' && !b.finishedReadingAt) {
+              updates.finishedReadingAt = Date.now()
+            }
+            if (status === 'want') {
+              updates.startedReadingAt = undefined
+              updates.finishedReadingAt = undefined
+            }
+            return { ...b, ...updates }
+          }),
+        }))
+      },
+
+      updateBookDate: (bookId, field, value) => {
+        set(s => ({
+          books: s.books.map(b =>
+            b.id === bookId ? { ...b, [field]: value ?? undefined } : b
+          ),
+        }))
+      },
+
+      addBookTag: (bookId, tag) => {
+        const trimmed = tag.trim()
+        if (!trimmed) return
+        set(s => ({
+          books: s.books.map(b => {
+            if (b.id !== bookId) return b
+            const tags = b.tags ?? []
+            if (tags.includes(trimmed)) return b
+            return { ...b, tags: [...tags, trimmed] }
+          }),
+        }))
+      },
+
+      removeBookTag: (bookId, tag) => {
+        set(s => ({
+          books: s.books.map(b => {
+            if (b.id !== bookId) return b
+            return { ...b, tags: (b.tags ?? []).filter(t => t !== tag) }
+          }),
+        }))
+      },
+
+      updateBookTitle: (bookId, title) => {
+        set(s => ({
+          books: s.books.map(b =>
+            b.id === bookId ? { ...b, title } : b
+          ),
+        }))
+      },
+
+      updateBookAuthor: (bookId, authorName) => {
+        const trimmed = authorName.trim()
+        if (!trimmed) return
+        set(s => {
+          const existingAuthorId = s.authors.find(a => a.name === trimmed)?.id
+          if (!existingAuthorId) {
+            const authorId = uuid()
+            return {
+              authors: [...s.authors, { id: authorId, name: trimmed, createdAt: Date.now() }],
+              books: s.books.map(b =>
+                b.id === bookId ? { ...b, authorId } : b
+              ),
+            }
+          }
+          return {
+            books: s.books.map(b =>
+              b.id === bookId ? { ...b, authorId: existingAuthorId } : b
+            ),
+          }
+        })
+      },
+
+      replaceBookToc: (bookId, items) => {
+        set(s => {
+          const oldItems = s.tocItems.filter(t => t.bookId === bookId)
+          const oldTocIds = new Set(oldItems.map(t => t.id))
+
+          // Build title→oldId map for remapping
+          const titleToOldId = new Map<string, string>()
+          for (const item of oldItems) {
+            titleToOldId.set(item.title, item.id)
+          }
+
+          const activeRoundIds = new Set(
+            s.rounds.filter(r => r.bookId === bookId && r.status === "active").map(r => r.id)
+          )
+
+          // Get all old statuses (active + completed)
+          const oldStatuses = s.chapterStatuses.filter(c => oldTocIds.has(c.tocItemId))
+
+          const newStatuses: ChapterStatus[] = []
+          for (const item of items) {
+            const matchedOldId = titleToOldId.get(item.title)
+
+            for (const round of s.rounds.filter(r => r.bookId === bookId)) {
+              if (activeRoundIds.has(round.id)) {
+                // Active round: fresh status
+                newStatuses.push({
+                  tocItemId: item.id,
+                  roundId: round.id,
+                  checked: false,
+                  checkedAt: null,
+                  scheduledDate: null,
+                })
+              } else if (matchedOldId) {
+                // Completed round: carry over old status if title matched
+                const oldStatus = oldStatuses.find(
+                  c => c.tocItemId === matchedOldId && c.roundId === round.id
+                )
+                if (oldStatus) {
+                  newStatuses.push({
+                    ...oldStatus,
+                    tocItemId: item.id, // remap to new item ID
+                  })
+                }
+              }
+            }
+          }
+
+          return {
+            tocItems: [
+              ...s.tocItems.filter(t => t.bookId !== bookId),
+              ...items,
+            ],
+            chapterStatuses: [
+              ...s.chapterStatuses.filter(c => !oldTocIds.has(c.tocItemId)),
+              ...newStatuses,
+            ],
+            books: s.books.map(b =>
+              b.id === bookId
+                ? { ...b, tocText: items.map(i => `${"  ".repeat(getDepth(items, i.id))}- ${i.title}`).join("\n") }
+                : b
+            ),
+          }
+        })
       },
 
       getActiveRound: (bookId) => {

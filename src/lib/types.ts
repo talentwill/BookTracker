@@ -11,6 +11,13 @@ export interface Book {
   authorId: string
   tocText: string
   createdAt: number
+  publisher?: string
+  publishDate?: string
+  isbn?: string
+  readingStatus?: 'reading' | 'finished' | 'dropped' | 'idle' | 'want'
+  startedReadingAt?: number
+  finishedReadingAt?: number
+  tags?: string[]
 }
 
 export interface TocItem {

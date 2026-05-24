@@ -10,6 +10,7 @@ interface TableViewProps {
   round: ReadingRound
   onSchedule: (tocItemId: string, date: string | null) => void
   onToggle: (tocItemId: string) => void
+  rightAction?: React.ReactNode
 }
 
 type Filter = "all" | "today" | "tomorrow" | "unscheduled" | "done"
@@ -17,7 +18,7 @@ type Filter = "all" | "today" | "tomorrow" | "unscheduled" | "done"
 const gridClass = "grid items-center gap-2 px-3 py-2 text-[13px]"
 const gridStyle = { gridTemplateColumns: "28px 1fr 72px 80px 200px" }
 
-export function TableView({ items, statuses, round, onSchedule, onToggle }: TableViewProps) {
+export function TableView({ items, statuses, round, onSchedule, onToggle, rightAction }: TableViewProps) {
   const [filter, setFilter] = useState<Filter>("all")
   const today = formatToday()
 
@@ -43,7 +44,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle }: Tabl
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap gap-2 items-center">
         {filters.map(f => (
           <button
             key={f.key}
@@ -53,6 +54,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle }: Tabl
             {f.label}
           </button>
         ))}
+        {rightAction && <div className="ml-auto">{rightAction}</div>}
       </div>
 
       <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.1)]">
