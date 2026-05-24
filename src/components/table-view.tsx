@@ -2,19 +2,22 @@
 
 import { useState } from "react"
 import type { TocItem, ChapterStatus, ReadingRound } from "@/lib/types"
-import { formatToday, formatDate, getChapterStatus } from "@/lib/utils"
+import { formatToday, getChapterStatus } from "@/lib/utils"
 
 interface TableViewProps {
   items: TocItem[]
   statuses: Map<string, ChapterStatus>
   round: ReadingRound
   onSchedule: (tocItemId: string, date: string | null) => void
-  onMarkDone: (tocItemId: string) => void
+  onToggle: (tocItemId: string) => void
 }
 
 type Filter = "all" | "today" | "tomorrow" | "unscheduled" | "done"
 
-export function TableView({ items, statuses, round, onSchedule, onMarkDone }: TableViewProps) {
+const gridClass = "grid items-center gap-2 px-3 py-2 text-[13px]"
+const gridStyle = { gridTemplateColumns: "28px 1fr 72px 80px 200px" }
+
+export function TableView({ items, statuses, round, onSchedule, onToggle }: TableViewProps) {
   const [filter, setFilter] = useState<Filter>("all")
   const today = formatToday()
 
@@ -53,13 +56,6 @@ export function TableView({ items, statuses, round, onSchedule, onMarkDone }: Ta
       </div>
 
       <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.1)]">
-        <div className="flex gap-2 border-b border-[rgba(0,0,0,0.1)] bg-[#f6f5f4] px-3 py-2 text-xs font-semibold text-[#615d59]">
-          <span className="w-7" />
-          <span className="flex-[2]">章节名称</span>
-          <span className="flex-[0.7] text-center">状态</span>
-          <span className="flex-[0.9] text-center">计划日期</span>
-          <span className="flex-[1.3] text-center">操作</span>
-        </div>
         {filteredRows.map(row => (
           <Row
             key={row.item.id}
@@ -69,7 +65,7 @@ export function TableView({ items, statuses, round, onSchedule, onMarkDone }: Ta
             depth={row.depth}
             today={today}
             onSchedule={onSchedule}
-            onMarkDone={onMarkDone}
+            onToggle={onToggle}
           />
         ))}
         {filteredRows.length === 0 && (
@@ -81,7 +77,7 @@ export function TableView({ items, statuses, round, onSchedule, onMarkDone }: Ta
 }
 
 function Row({
-  item, status, chapterStatus, depth, today, onSchedule, onMarkDone,
+  item, status, chapterStatus, depth, today, onSchedule, onToggle,
 }: {
   item: TocItem
   status: ChapterStatus | undefined
@@ -89,11 +85,14 @@ function Row({
   depth: number
   today: string
   onSchedule: (id: string, date: string | null) => void
-  onMarkDone: (id: string) => void
+  onToggle: (id: string) => void
 }) {
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
   const tomorrowStr = tomorrow.toISOString().slice(0, 10)
+  const nextWeek = new Date(today)
+  nextWeek.setDate(nextWeek.getDate() + 7)
+  const nextWeekStr = nextWeek.toISOString().slice(0, 10)
 
   const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
     done: { bg: "bg-[#e6f9ee]", text: "text-[#1aae39]", label: "已完成" },
@@ -108,40 +107,34 @@ function Row({
 
   return (
     <div
-      className={`flex items-center gap-2 border-b border-[rgba(0,0,0,0.05)] px-3 py-2 text-[13px] ${isDone ? "opacity-50" : ""}`}
-      style={{ paddingLeft: `${depth * 20 + 12}px` }}
+      className={`${gridClass} border-b border-[rgba(0,0,0,0.05)] ${isDone ? "opacity-50" : ""}`}
+      style={gridStyle}
     >
-      <span className={`w-7 text-center text-sm ${isDone ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
+      <span className={`text-center text-sm ${isDone ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
         {isDone ? "✓" : "○"}
       </span>
-      <span className={`flex-[2] ${isDone ? "line-through" : ""} ${depth === 0 && !isDone ? "font-medium" : ""}`}>
+      <span className={`truncate ${isDone ? "line-through" : ""} ${depth === 0 && !isDone ? "font-medium" : ""}`} style={{ paddingLeft: `${depth * 20}px` }}>
         {item.title}
       </span>
-      <span className="flex-[0.7] text-center">
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.bg} ${badge.text}`}>
+      <span className="text-center">
+        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.bg} ${badge.text}`}>
           {badge.label}
         </span>
       </span>
-      <span className="flex-[0.9] text-center text-xs text-[#a39e98]">
+      <span className="text-center text-xs text-[#a39e98]">
         {isDone && status?.checkedAt
-          ? formatDate(status.checkedAt)
-          : status?.scheduledDate
-            ? status.scheduledDate === today ? "今天" : status.scheduledDate === tomorrowStr ? "明天" : status.scheduledDate
-            : "—"}
+          ? new Date(status.checkedAt).toISOString().slice(0, 10)
+          : status?.scheduledDate ?? "—"}
       </span>
-      <span className="flex flex-[1.3] justify-center gap-1">
+      <span className="flex justify-center gap-1">
         {isDone ? (
-          <span className="text-[11px] text-[#a39e98]">{formatDate(status!.checkedAt!)}</span>
-        ) : chapterStatus === "unscheduled" ? (
-          <>
-            <button onClick={() => onSchedule(item.id, today)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">今天读</button>
-            <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">明天读</button>
-            <button onClick={() => onMarkDone(item.id)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">读完</button>
-          </>
+          <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]">撤销</button>
         ) : (
           <>
-            <button onClick={() => onMarkDone(item.id)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">读完</button>
-            <button onClick={() => onSchedule(item.id, null)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] text-[#615d59] hover:bg-[rgba(0,0,0,0.08)]">改期</button>
+            <button onClick={() => onSchedule(item.id, today)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">今天</button>
+            <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">明天</button>
+            <button onClick={() => onSchedule(item.id, nextWeekStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">下周</button>
+            <button onClick={() => onToggle(item.id)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">已读</button>
           </>
         )}
       </span>

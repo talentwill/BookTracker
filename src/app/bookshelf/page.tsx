@@ -3,13 +3,11 @@
 import { useState } from "react"
 import { useBookStore } from "@/lib/store"
 import { BookCard } from "@/components/book-card"
-import { AddBookDialog } from "@/components/add-book-dialog"
 
-type Filter = "all" | "reading" | "done" | "today"
+type Filter = "all" | "reading" | "done" | "today" | "unfinished"
 
 export default function BookshelfPage() {
   const [filter, setFilter] = useState<Filter>("all")
-  const [addOpen, setAddOpen] = useState(false)
   const store = useBookStore()
   const today = new Date().toISOString().slice(0, 10)
 
@@ -22,7 +20,8 @@ export default function BookshelfPage() {
     const totalCount = items.length
     const isComplete = totalCount > 0 && checkedCount === totalCount
     const hasToday = statuses.some(s => !s.checked && s.scheduledDate === today)
-    return { book, author, round, items, statuses, isComplete, hasToday, checkedCount, totalCount }
+    const hasUnfinished = items.length > 0 && statuses.filter(s => s.checked).length < items.length
+    return { book, author, round, items, statuses, isComplete, hasToday, hasUnfinished, checkedCount, totalCount }
   })
 
   const filtered = bookCards.filter(b => {
@@ -30,6 +29,7 @@ export default function BookshelfPage() {
     if (filter === "reading") return !b.isComplete
     if (filter === "done") return b.isComplete
     if (filter === "today") return b.hasToday
+    if (filter === "unfinished") return b.hasUnfinished
     return true
   })
 
@@ -38,6 +38,7 @@ export default function BookshelfPage() {
     reading: bookCards.filter(b => !b.isComplete).length,
     done: bookCards.filter(b => b.isComplete).length,
     today: bookCards.filter(b => b.hasToday).length,
+    unfinished: bookCards.filter(b => b.hasUnfinished).length,
   }
 
   const filters: { key: Filter; label: string }[] = [
@@ -45,6 +46,7 @@ export default function BookshelfPage() {
     { key: "reading", label: `在读 (${counts.reading})` },
     { key: "done", label: `已完成 (${counts.done})` },
     { key: "today", label: `今天有排期 (${counts.today})` },
+    { key: "unfinished", label: `未读 (${counts.unfinished})` },
   ]
 
   return (
@@ -69,18 +71,7 @@ export default function BookshelfPage() {
         {filtered.map(b => (
           <BookCard key={b.book.id} {...b} />
         ))}
-        <button
-          onClick={() => setAddOpen(true)}
-          className="flex min-h-[260px] items-center justify-center rounded-xl border-2 border-dashed border-[rgba(0,0,0,0.12)] bg-[#fafafa] transition-colors hover:bg-[#f6f5f4]"
-        >
-          <div className="text-center text-[#a39e98]">
-            <div className="mb-1 text-3xl">+</div>
-            <div className="text-[13px] font-medium">添加书籍</div>
-          </div>
-        </button>
       </div>
-
-      <AddBookDialog open={addOpen} onOpenChange={setAddOpen} />
     </div>
   )
 }

@@ -3,23 +3,24 @@
 import { use, useState } from "react"
 import Link from "next/link"
 import { useBookStore } from "@/lib/store"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { OutlineView } from "@/components/outline-view"
 import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
 import { NewRoundDialog } from "@/components/new-round-dialog"
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [tab, setTab] = useState("outline")
   const [roundDialogOpen, setRoundDialogOpen] = useState(false)
+  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
   const store = useBookStore()
 
   const book = store.books.find(b => b.id === id)
   const author = book ? store.authors.find(a => a.id === book.authorId) : undefined
   const items = store.tocItems.filter(t => t.bookId === id)
   const activeRound = book ? store.getActiveRound(id) : undefined
-  const roundId = activeRound?.id ?? ""
+  const selectedRound = selectedRoundId
+    ? store.rounds.find(r => r.id === selectedRoundId)
+    : activeRound
+  const roundId = selectedRound?.id ?? ""
 
   const statuses = new Map(
     store.chapterStatuses
@@ -69,48 +70,24 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
           </div>
-          {activeRound && (
+          {selectedRound && (
             <RoundSelector
               rounds={store.rounds.filter(r => r.bookId === id)}
-              activeRound={activeRound}
+              selectedRound={selectedRound}
+              onSelectRound={(round) => setSelectedRoundId(round.id)}
               onNewRound={() => setRoundDialogOpen(true)}
             />
           )}
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab} className="border-b border-[rgba(0,0,0,0.1)]">
-        <TabsList variant="line" className="mx-6 bg-transparent p-0">
-          <TabsTrigger
-            value="outline"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm data-active:border-[#0075de] data-active:bg-transparent data-active:font-semibold data-active:text-[#0075de] data-active:shadow-none"
-          >
-            大纲视图
-          </TabsTrigger>
-          <TabsTrigger
-            value="table"
-            className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm data-active:border-[#0075de] data-active:bg-transparent data-active:font-semibold data-active:text-[#0075de] data-active:shadow-none"
-          >
-            表格视图
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {tab === "outline" && activeRound && (
-        <OutlineView
-          items={items}
-          statuses={statuses}
-          round={activeRound}
-          onToggle={(tocItemId) => store.toggleChapter(tocItemId, roundId)}
-        />
-      )}
-      {tab === "table" && activeRound && (
+      {selectedRound && (
         <TableView
           items={items}
           statuses={statuses}
-          round={activeRound}
+          round={selectedRound}
           onSchedule={(tocItemId, date) => store.scheduleChapter(tocItemId, roundId, date)}
-          onMarkDone={(tocItemId) => store.markDone(tocItemId, roundId)}
+          onToggle={(tocItemId) => store.toggleChapter(tocItemId, roundId)}
         />
       )}
       <NewRoundDialog

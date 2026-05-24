@@ -30,12 +30,16 @@ export function AddBookDialog({ open, onOpenChange }: AddBookDialogProps) {
 
   function handleImport() {
     if (!canImport) return
-    const bookId = store.addBook(title.trim(), authorName.trim(), tocText)
+    const bookId = store.addBook(title.trim(), authorName.trim() || "未知作者", tocText)
     setTitle("")
     setAuthorName("")
     setTocText("")
     onOpenChange(false)
-    router.push("/books/" + bookId)
+    if (bookId) {
+      router.push("/books/" + bookId)
+    } else {
+      router.push("/bookshelf")
+    }
   }
 
   function handleCancel() {

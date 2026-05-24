@@ -1,7 +1,7 @@
 "use client"
 
 import type { TocItem, ChapterStatus, ReadingRound } from "@/lib/types"
-import { buildTree, formatDate } from "@/lib/utils"
+import { buildTree } from "@/lib/utils"
 
 interface OutlineViewProps {
   items: TocItem[]
@@ -67,14 +67,19 @@ function OutlineNode({
         >
           {item.title}
         </span>
-        {checked && status?.checkedAt ? (
-          <span className="text-[11px] text-[#a39e98]">{formatDate(status.checkedAt)}</span>
+        {checked ? (
+          <button
+            onClick={() => onToggle(item.id)}
+            className="rounded bg-[#e6f9ee] px-3 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]"
+          >
+            撤销
+          </button>
         ) : (
           <button
             onClick={() => onToggle(item.id)}
             className="rounded bg-[#f2f9ff] px-3 py-0.5 text-[11px] font-semibold text-[#097fe8] hover:bg-[#0075de] hover:text-white"
           >
-            打勾
+            已读
           </button>
         )}
       </div>

@@ -66,7 +66,10 @@ export default function HomePage() {
         </div>
         <TodayReadingList
           items={todayItems}
+          authors={store.authors}
+          allTocItems={store.tocItems}
           onToggle={(tocItemId, roundId) => store.toggleChapter(tocItemId, roundId)}
+          onSchedule={(tocItemId, roundId, date) => store.scheduleChapter(tocItemId, roundId, date)}
         />
       </div>
 
