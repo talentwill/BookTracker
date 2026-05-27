@@ -154,21 +154,9 @@ export const useBookStore = create<BookStore>()(
 
       updateBookStatus: (bookId, status) => {
         set(s => ({
-          books: s.books.map(b => {
-            if (b.id !== bookId) return b
-            const updates: Partial<Book> = { readingStatus: status }
-            if (status === 'reading' && !b.startedReadingAt) {
-              updates.startedReadingAt = Date.now()
-            }
-            if (status === 'finished' && !b.finishedReadingAt) {
-              updates.finishedReadingAt = Date.now()
-            }
-            if (status === 'want') {
-              updates.startedReadingAt = undefined
-              updates.finishedReadingAt = undefined
-            }
-            return { ...b, ...updates }
-          }),
+          books: s.books.map(b =>
+            b.id === bookId ? { ...b, readingStatus: status } : b
+          ),
         }))
       },
 

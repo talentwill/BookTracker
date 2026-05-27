@@ -93,6 +93,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   function handleStatusChange(status: Book['readingStatus']) {
+    if (!book) return
+    if (status === 'reading' && !book.startedReadingAt) {
+      store.updateBookDate(id, 'startedReadingAt', Date.now())
+    }
+    if (status === 'finished' && !book.finishedReadingAt) {
+      store.updateBookDate(id, 'finishedReadingAt', Date.now())
+    }
     store.updateBookStatus(id, status)
     setStatusDropdownOpen(false)
   }
