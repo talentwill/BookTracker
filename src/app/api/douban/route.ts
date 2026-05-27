@@ -72,11 +72,26 @@ export async function POST(req: NextRequest) {
     // ISBN
     const isbn = extractInfoText($, "ISBN")
 
+    // Cover image
+    const coverUrl = $('meta[property="og:image"]').attr('content')
+      || $('#mainpic img').attr('src')
+      || undefined
+
+    // TOC text (best-effort)
+    let tocText: string | null = null
+    const tocHeader = $('h2, h3, .pl').filter((_, el) => $(el).text().includes('目录')).first()
+    if (tocHeader.length > 0) {
+      const tocContainer = tocHeader.nextAll('.indent').first()
+      if (tocContainer.length > 0) {
+        tocText = tocContainer.text().trim() || null
+      }
+    }
+
     if (!title && !author) {
       return NextResponse.json({ error: "无法解析该页面，请确认链接是否正确" }, { status: 422 })
     }
 
-    return NextResponse.json({ title, author, publisher, publishDate, isbn })
+    return NextResponse.json({ title, author, publisher, publishDate, isbn, coverUrl, tocText })
   } catch {
     return NextResponse.json({ error: "解析失败，请重试" }, { status: 500 })
   }
