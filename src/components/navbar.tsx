@@ -1,10 +1,7 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { AddBookDialog } from "@/components/add-book-dialog"
 
 const tabs = [
   { label: "首页", href: "/" },
@@ -14,7 +11,6 @@ const tabs = [
 
 export function Navbar() {
   const pathname = usePathname()
-  const [dialogOpen, setDialogOpen] = useState(false)
 
   function isActiveTab(href: string) {
     if (href === "/") return pathname === "/"
@@ -23,9 +19,8 @@ export function Navbar() {
   }
 
   return (
-    <>
-      <nav className="sticky top-0 z-40 border-b border-[rgba(0,0,0,0.1)] bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
+    <nav className="sticky top-0 z-40 border-b border-[rgba(0,0,0,0.1)] bg-white">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="flex items-center justify-center w-7 h-7 rounded bg-[#0075de]">
@@ -62,18 +57,14 @@ export function Navbar() {
           >
             ⚙️
           </Link>
-          <Button
-            onClick={() => setDialogOpen(true)}
-            className="text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white"
-            size="sm"
+          <Link
+            href="/books/add"
+            className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md transition-colors"
           >
             + 添加书籍
-          </Button>
+          </Link>
         </div>
-        </div>
-      </nav>
-
-      <AddBookDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-    </>
+      </div>
+    </nav>
   )
 }
