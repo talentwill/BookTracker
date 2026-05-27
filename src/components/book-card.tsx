@@ -48,7 +48,16 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
           className="relative flex h-[130px] items-center justify-center"
           style={{ background: gradients[gradientIndex] }}
         >
-          <span className="text-[44px]">📘</span>
+          {book.coverUrl ? (
+            <img
+              src={book.coverUrl}
+              alt={book.title}
+              className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+            />
+          ) : (
+            <span className="text-[44px]">📘</span>
+          )}
           <div className="absolute right-2 top-2 flex gap-1">
             <span className="rounded-full bg-[#f2f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#097fe8]">
               第{round?.roundNumber ?? 1}轮

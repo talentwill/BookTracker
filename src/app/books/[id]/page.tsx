@@ -119,25 +119,49 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         <Link href="/bookshelf" className="mb-3 inline-block text-sm text-[#0075de] hover:underline">
           &larr; 返回书架
         </Link>
-        <div className="flex items-start gap-4">
-          <div className="flex h-[88px] w-16 items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] text-2xl border border-[rgba(0,0,0,0.1)]">
-            📘
+        <div className="flex items-start gap-5">
+          <div className="relative w-[100px] h-[140px] shrink-0 rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
+            {book.coverUrl ? (
+              <img
+                src={book.coverUrl}
+                alt={book.title}
+                className="w-full h-full object-cover"
+                onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-3xl">📘</div>
+            )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">{book.title}</h1>
-            <p className="mt-0.5 text-[13px] text-[#615d59]">
+            <p className="mt-1 text-[13px] text-[#615d59]">
               <Link href={`/authors/${book.authorId}`} className="text-[#0075de] hover:underline">
                 {author?.name ?? "未知"}
               </Link>
             </p>
 
-            {/* Douban metadata (read-only) */}
+            {/* Douban metadata */}
             {hasDoubanMeta && (
-              <p className="mt-1.5 text-[12px] text-[#9b958e] flex items-center gap-1.5 flex-wrap">
-                {book.publisher && <span>{book.publisher}</span>}
-                {book.publishDate && <><span className="text-[#d5d0ca]">·</span><span>{book.publishDate}</span></>}
-                {book.isbn && <><span className="text-[#d5d0ca]">·</span><span>ISBN {book.isbn}</span></>}
-              </p>
+              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
+                {book.publisher && (
+                  <div>
+                    <span className="text-[#9b958e]">出版社</span>
+                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
+                  </div>
+                )}
+                {book.publishDate && (
+                  <div>
+                    <span className="text-[#9b958e]">出版日期</span>
+                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
+                  </div>
+                )}
+                {book.isbn && (
+                  <div>
+                    <span className="text-[#9b958e]">ISBN</span>
+                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Tags */}
