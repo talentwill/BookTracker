@@ -50,6 +50,7 @@ export default function AddBookPage() {
   const [isbn, setIsbn] = useState("")
   const [coverUrl, setCoverUrl] = useState("")
   const [customCover, setCustomCover] = useState<string | null>(null)
+  const [imgError, setImgError] = useState(false)
 
   const [tocItems, setTocItems] = useState<TocItem[]>([])
   const [tocRawText, setTocRawText] = useState("")
@@ -87,6 +88,7 @@ export default function AddBookPage() {
         setPublishDate(data.publishDate || "")
         setIsbn(data.isbn || "")
         setCoverUrl(data.coverUrl || "")
+        setImgError(false)
 
         if (data.tocText) {
           await handleAiParse(data.tocText)
@@ -147,6 +149,7 @@ export default function AddBookPage() {
     try {
       const compressed = await compressImage(file)
       setCustomCover(compressed)
+      setImgError(false)
     } catch {
       // silently fail
     }
@@ -239,12 +242,12 @@ export default function AddBookPage() {
             className="relative w-[120px] h-[168px] shrink-0 rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] group cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            {displayCover ? (
+            {displayCover && !imgError ? (
               <img
                 src={displayCover}
                 alt="封面"
                 className="w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                onError={() => setImgError(true)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-3xl">📘</div>
