@@ -115,57 +115,62 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div>
-      <div className="border-b border-[rgba(0,0,0,0.1)] px-6 py-5">
+      <div className="px-6 py-5">
         <Link href="/bookshelf" className="mb-3 inline-block text-sm text-[#0075de] hover:underline">
           &larr; 返回书架
         </Link>
-        <div className="flex items-start gap-5">
-          <div className="relative w-[100px] h-[140px] shrink-0 rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
-            {book.coverUrl ? (
-              <img
-                src={book.coverUrl}
-                alt={book.title}
-                className="w-full h-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl">📘</div>
-            )}
+        <div className="flex items-stretch gap-5">
+          {/* Card 1: Cover */}
+          <div className="w-[160px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-4 flex flex-col items-center justify-center">
+            <div className="relative w-[120px] h-[170px] rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
+              {book.coverUrl ? (
+                <img
+                  src={book.coverUrl}
+                  alt={book.title}
+                  className="w-full h-full object-cover"
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl">📘</div>
+              )}
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
+
+          {/* Card 2: Book info */}
+          <div className="flex-1 min-w-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-3">
             <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">{book.title}</h1>
-            <p className="mt-1 text-[13px] text-[#615d59]">
+            <p className="text-[13px] text-[#615d59]">
               <Link href={`/authors/${book.authorId}`} className="text-[#0075de] hover:underline">
                 {author?.name ?? "未知"}
               </Link>
             </p>
 
-            {/* Douban metadata */}
+            {/* Douban metadata — vertical layout */}
             {hasDoubanMeta && (
-              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
+              <div className="flex flex-col gap-1.5 text-[12px]">
                 {book.publisher && (
                   <div>
-                    <span className="text-[#9b958e]">出版社</span>
-                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
+                    <span className="inline-block w-14 text-[#9b958e]">出版社</span>
+                    <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
                   </div>
                 )}
                 {book.publishDate && (
                   <div>
-                    <span className="text-[#9b958e]">出版日期</span>
-                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
+                    <span className="inline-block w-14 text-[#9b958e]">出版日期</span>
+                    <span className="text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
                   </div>
                 )}
                 {book.isbn && (
                   <div>
-                    <span className="text-[#9b958e]">ISBN</span>
-                    <span className="ml-1.5 text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
+                    <span className="inline-block w-14 text-[#9b958e]">ISBN</span>
+                    <span className="text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Tags */}
-            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+            {/* Tags — pushed to bottom */}
+            <div className="mt-auto flex items-center gap-1.5 flex-wrap">
               <span className="text-[12px] text-[#9b958e] min-w-[28px]">标签</span>
               {(book.tags ?? []).map(tag => (
                 <span key={tag} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[12px] text-[#615d59]">
@@ -186,12 +191,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 className="border border-dashed border-[rgba(0,0,0,0.15)] rounded px-2 py-0.5 text-[12px] text-[#615d59] bg-transparent outline-none w-20 placeholder:text-[#c5bfb8]"
               />
             </div>
+          </div>
 
-            {/* Divider */}
-            <div className="mt-2.5 border-t border-[rgba(0,0,0,0.06)]" />
-
-            {/* Status + dates */}
-            <div className="mt-2.5 flex items-center gap-2.5 text-[13px] flex-wrap">
+          {/* Card 3: Reading info */}
+          <div className="w-[200px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-4">
+            {/* Status + Round */}
+            <div className="flex items-center gap-2">
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
@@ -216,75 +221,75 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 )}
               </div>
-
-              {book.startedReadingAt && (
-                <>
-                  <span className="text-[#d5d0ca] text-[11px]">·</span>
-                  <span className="text-[12px] text-[#9b958e]">开始</span>
-                  {editingDate === 'startedReadingAt' ? (
-                    <input
-                      ref={dateInputRef}
-                      type="date"
-                      defaultValue={formatDate(book.startedReadingAt)}
-                      onChange={e => handleDateChange('startedReadingAt', e.target.value)}
-                      className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
-                    />
-                  ) : (
-                    <span
-                      onClick={() => setEditingDate('startedReadingAt')}
-                      className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
-                    >
-                      {formatDate(book.startedReadingAt)}
-                    </span>
-                  )}
-                </>
-              )}
-
-              {book.finishedReadingAt && (
-                <>
-                  <span className="text-[#d5d0ca] text-[11px]">·</span>
-                  <span className="text-[12px] text-[#9b958e]">完成</span>
-                  {editingDate === 'finishedReadingAt' ? (
-                    <input
-                      ref={dateInputRef}
-                      type="date"
-                      defaultValue={formatDate(book.finishedReadingAt)}
-                      onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
-                      className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
-                    />
-                  ) : (
-                    <span
-                      onClick={() => setEditingDate('finishedReadingAt')}
-                      className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
-                    >
-                      {formatDate(book.finishedReadingAt)}
-                    </span>
-                  )}
-                </>
+              {selectedRound && (
+                <RoundSelector
+                  rounds={store.rounds.filter(r => r.bookId === id)}
+                  selectedRound={selectedRound}
+                  onSelectRound={(round) => setSelectedRoundId(round.id)}
+                  onNewRound={() => setRoundDialogOpen(true)}
+                />
               )}
             </div>
 
-            {/* Progress bar */}
-            <div className="mt-2 flex items-center gap-3">
-              <div className="max-w-[280px] flex-1">
-                <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-[#615d59]">阅读进度</span>
-                  <span className="font-semibold text-[#097fe8]">{checkedCount}/{totalCount} &middot; {progress}%</span>
-                </div>
-                <div className="h-[5px] overflow-hidden rounded-full bg-[#f2f9ff]">
-                  <div className="h-full rounded-full bg-[#0075de] transition-all" style={{ width: `${progress}%` }} />
-                </div>
+            {/* Divider */}
+            <div className="border-t border-[rgba(0,0,0,0.06)]" />
+
+            {/* Dates */}
+            {book.startedReadingAt && (
+              <div className="flex items-center gap-2 text-[12px]">
+                <span className="text-[#9b958e]">开始</span>
+                {editingDate === 'startedReadingAt' ? (
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    defaultValue={formatDate(book.startedReadingAt)}
+                    onChange={e => handleDateChange('startedReadingAt', e.target.value)}
+                    className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  />
+                ) : (
+                  <span
+                    onClick={() => setEditingDate('startedReadingAt')}
+                    className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
+                  >
+                    {formatDate(book.startedReadingAt)}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {book.finishedReadingAt && (
+              <div className="flex items-center gap-2 text-[12px]">
+                <span className="text-[#9b958e]">完成</span>
+                {editingDate === 'finishedReadingAt' ? (
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    defaultValue={formatDate(book.finishedReadingAt)}
+                    onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
+                    className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  />
+                ) : (
+                  <span
+                    onClick={() => setEditingDate('finishedReadingAt')}
+                    className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
+                  >
+                    {formatDate(book.finishedReadingAt)}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Progress bar — pushed to bottom */}
+            <div className="mt-auto">
+              <div className="mb-1 flex justify-between text-xs">
+                <span className="text-[#615d59]">阅读进度</span>
+                <span className="font-semibold text-[#097fe8]">{checkedCount}/{totalCount} &middot; {progress}%</span>
+              </div>
+              <div className="h-[5px] overflow-hidden rounded-full bg-[#f2f9ff]">
+                <div className="h-full rounded-full bg-[#0075de] transition-all" style={{ width: `${progress}%` }} />
               </div>
             </div>
           </div>
-          {selectedRound && (
-            <RoundSelector
-              rounds={store.rounds.filter(r => r.bookId === id)}
-              selectedRound={selectedRound}
-              onSelectRound={(round) => setSelectedRoundId(round.id)}
-              onNewRound={() => setRoundDialogOpen(true)}
-            />
-          )}
         </div>
       </div>
 
