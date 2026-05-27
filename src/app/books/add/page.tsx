@@ -151,7 +151,7 @@ export default function AddBookPage() {
       setCustomCover(compressed)
       setImgError(false)
     } catch {
-      // silently fail
+      setParseError("封面压缩失败，请换一张图片")
     }
   }
 
@@ -165,9 +165,8 @@ export default function AddBookPage() {
     if (isbn.trim()) meta.isbn = isbn.trim()
     if (effectiveCover) meta.coverUrl = effectiveCover
 
-    const tocText = tocItems.length > 0
-      ? tocItems.map(i => `${"  ".repeat(getDepth(tocItems, i.id))}- ${i.title}`).join("\n")
-      : tocRawText.trim()
+    const hasStructuredToc = tocItems.length > 0
+    const tocText = hasStructuredToc ? "" : tocRawText.trim()
 
     const bookId = store.addBook(
       title.trim(),
@@ -176,26 +175,12 @@ export default function AddBookPage() {
       Object.keys(meta).length > 0 ? meta : undefined
     )
 
-    if (bookId) {
-      if (tocItems.length > 0) {
-        const realItems = parseOutline(tocText, bookId)
-        store.replaceBookToc(bookId, realItems)
-      }
-      router.push("/books/" + bookId)
-    } else {
-      router.push("/bookshelf")
+    if (hasStructuredToc) {
+      const realItems = tocItems.map(item => ({ ...item, bookId }))
+      store.replaceBookToc(bookId, realItems)
     }
-  }
 
-  function getDepth(items: TocItem[], id: string): number {
-    const map = new Map(items.map(i => [i.id, i]))
-    let depth = 0
-    let current = map.get(id)
-    while (current?.parentId) {
-      depth++
-      current = map.get(current.parentId)
-    }
-    return depth
+    router.push("/books/" + bookId)
   }
 
   const displayCover = customCover || coverUrl
