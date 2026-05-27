@@ -20,6 +20,13 @@
 - `src/lib/store.ts` — `addBook` 支持 `coverUrl`
 - `src/app/api/douban/route.ts` — 返回 `coverUrl` 和 `tocText`
 
+### 封面图片展示
+
+在书籍详情页和书架卡片中展示封面图片。
+
+**改动：**
+- `src/app/books/[id]/page.tsx` — 详情页显示封面，元数据改为标签式布局（出版社/出版日期/ISBN 独立一行）
+- `src/components/book-card.tsx` — 书架卡片封面图替代默认 emoji
+
 **已知限制：**
 - 豆瓣封面使用 URL 引用，可能因防盗链加载失败（回退为默认图标）
-- `coverUrl` 已存储但尚未在书架卡片和详情页展示
