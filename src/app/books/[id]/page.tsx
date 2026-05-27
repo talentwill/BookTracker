@@ -235,49 +235,53 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <div className="border-t border-[rgba(0,0,0,0.06)]" />
 
             {/* Dates */}
-            {book.startedReadingAt && (
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="text-[#9b958e]">开始</span>
-                {editingDate === 'startedReadingAt' ? (
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    defaultValue={formatDate(book.startedReadingAt)}
-                    onChange={e => handleDateChange('startedReadingAt', e.target.value)}
-                    className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
-                  />
-                ) : (
-                  <span
-                    onClick={() => setEditingDate('startedReadingAt')}
-                    className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
-                  >
-                    {formatDate(book.startedReadingAt)}
-                  </span>
-                )}
-              </div>
-            )}
+            <div>
+              <div className="text-[11px] text-[#9b958e] mb-1">开始日期</div>
+              {editingDate === 'startedReadingAt' ? (
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  defaultValue={book.startedReadingAt ? formatDate(book.startedReadingAt) : ''}
+                  onChange={e => handleDateChange('startedReadingAt', e.target.value)}
+                  className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                />
+              ) : (
+                <span
+                  onClick={() => setEditingDate('startedReadingAt')}
+                  className={`text-[13px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                    book.startedReadingAt
+                      ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
+                      : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
+                  }`}
+                >
+                  {book.startedReadingAt ? formatDate(book.startedReadingAt) : '点击设置'}
+                </span>
+              )}
+            </div>
 
-            {book.finishedReadingAt && (
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="text-[#9b958e]">完成</span>
-                {editingDate === 'finishedReadingAt' ? (
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    defaultValue={formatDate(book.finishedReadingAt)}
-                    onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
-                    className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
-                  />
-                ) : (
-                  <span
-                    onClick={() => setEditingDate('finishedReadingAt')}
-                    className="text-[13px] text-[rgba(0,0,0,0.65)] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px hover:text-[#0075de] hover:border-[#0075de]"
-                  >
-                    {formatDate(book.finishedReadingAt)}
-                  </span>
-                )}
-              </div>
-            )}
+            <div>
+              <div className="text-[11px] text-[#9b958e] mb-1">完成日期</div>
+              {editingDate === 'finishedReadingAt' ? (
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  defaultValue={book.finishedReadingAt ? formatDate(book.finishedReadingAt) : ''}
+                  onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
+                  className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                />
+              ) : (
+                <span
+                  onClick={() => setEditingDate('finishedReadingAt')}
+                  className={`text-[13px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                    book.finishedReadingAt
+                      ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
+                      : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
+                  }`}
+                >
+                  {book.finishedReadingAt ? formatDate(book.finishedReadingAt) : '点击设置'}
+                </span>
+              )}
+            </div>
 
             {/* Progress bar — pushed to bottom */}
             <div className="mt-auto">
