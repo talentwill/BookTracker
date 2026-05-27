@@ -22,7 +22,7 @@ interface BookStore {
   rounds: ReadingRound[]
   chapterStatuses: ChapterStatus[]
 
-  addBook: (title: string, authorName: string, tocText: string, meta?: { publisher?: string; publishDate?: string; isbn?: string }) => string
+  addBook: (title: string, authorName: string, tocText: string, meta?: { publisher?: string; publishDate?: string; isbn?: string; coverUrl?: string }) => string
   deleteBook: (bookId: string) => void
   toggleChapter: (tocItemId: string, roundId: string) => void
   scheduleChapter: (tocItemId: string, roundId: string, date: string | null) => void
