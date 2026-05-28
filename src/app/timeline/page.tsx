@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { useBookStore } from "@/lib/store"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface DayGroup {
   dateKey: string
@@ -57,7 +56,23 @@ function CoverThumb({ coverUrl, title }: { coverUrl?: string; title: string }) {
 
 export default function TimelinePage() {
   const [selectedBookId, setSelectedBookId] = useState<string>("all")
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const searchRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const store = useBookStore()
+
+  useEffect(() => {
+    if (!searchOpen) return
+    function handleClick(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+        setSearchQuery("")
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [searchOpen])
 
   const bookMap = useMemo(() => new Map(store.books.map(b => [b.id, b])), [store.books])
   const tocItemMap = useMemo(() => new Map(store.tocItems.map(t => [t.id, t])), [store.tocItems])
@@ -112,21 +127,53 @@ export default function TimelinePage() {
     return { groups, booksWithRecords }
   }, [store.chapterStatuses, store.tocItems, store.books, selectedBookId, tocItemMap, bookMap])
 
+  const selectedBookTitle = selectedBookId === "all"
+    ? "全部书籍"
+    : bookMap.get(selectedBookId)?.title ?? "全部书籍"
+
+  const filteredBooks = useMemo(() => {
+    if (!searchQuery.trim()) return booksWithRecords
+    const q = searchQuery.toLowerCase()
+    return booksWithRecords.filter(b => b.title.toLowerCase().includes(q))
+  }, [booksWithRecords, searchQuery])
+
   return (
     <div className="px-6 py-6">
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">阅读时间线</h1>
-        <Select value={selectedBookId} onValueChange={v => setSelectedBookId(v ?? "all")}>
-          <SelectTrigger className="text-[13px] h-8 rounded-md border-[rgba(0,0,0,0.15)]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            <SelectItem value="all">全部书籍</SelectItem>
-            {booksWithRecords.map(book => (
-              <SelectItem key={book.id} value={book.id}>{book.title}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="relative" ref={searchRef}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchOpen ? searchQuery : selectedBookTitle}
+            onChange={e => setSearchQuery(e.target.value)}
+            onFocus={() => { setSearchOpen(true); setSearchQuery("") }}
+            placeholder="搜索书籍..."
+            className="border border-[rgba(0,0,0,0.15)] rounded-md px-3 py-1.5 text-[13px] text-[rgba(0,0,0,0.85)] bg-white outline-none focus:border-[#0075de] w-48"
+          />
+          {searchOpen && (
+            <div className="absolute top-full right-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white border border-[rgba(0,0,0,0.1)] rounded-lg shadow-lg z-10 py-1">
+              <button
+                onClick={() => { setSelectedBookId("all"); setSearchOpen(false); setSearchQuery("") }}
+                className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] ${selectedBookId === "all" ? "text-[#0075de] font-medium" : "text-[rgba(0,0,0,0.85)]"}`}
+              >
+                全部书籍
+              </button>
+              {filteredBooks.map(book => (
+                <button
+                  key={book.id}
+                  onClick={() => { setSelectedBookId(book.id); setSearchOpen(false); setSearchQuery("") }}
+                  className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] ${selectedBookId === book.id ? "text-[#0075de] font-medium" : "text-[rgba(0,0,0,0.85)]"}`}
+                >
+                  {book.title}
+                </button>
+              ))}
+              {filteredBooks.length === 0 && (
+                <div className="px-3 py-2 text-[12px] text-[#9b958e]">无匹配书籍</div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {groups.length === 0 ? (
