@@ -9,8 +9,6 @@ interface DayGroup {
   weekday: string
   chapters: Array<{
     bookId: string
-    bookTitle: string
-    coverUrl?: string
     tocItemId: string
     chapterTitle: string
   }>
@@ -39,6 +37,9 @@ export default function TimelinePage() {
   // Build tocItemId → book map
   const tocItemMap = new Map(store.tocItems.map(t => [t.id, t]))
 
+  // Build book id → book map for O(1) lookups
+  const bookMap = new Map(store.books.map(b => [b.id, b]))
+
   // Group by date
   const dateMap = new Map<string, DayGroup>()
 
@@ -46,7 +47,7 @@ export default function TimelinePage() {
     const tocItem = tocItemMap.get(status.tocItemId)
     if (!tocItem) continue
 
-    const book = store.books.find(b => b.id === tocItem.bookId)
+    const book = bookMap.get(tocItem.bookId)
     if (!book) continue
 
     // Filter by selected book
@@ -66,8 +67,6 @@ export default function TimelinePage() {
 
     dateMap.get(dateKey)!.chapters.push({
       bookId: book.id,
-      bookTitle: book.title,
-      coverUrl: book.coverUrl,
       tocItemId: tocItem.id,
       chapterTitle: tocItem.title,
     })
@@ -77,12 +76,10 @@ export default function TimelinePage() {
   const groups = [...dateMap.values()].sort((a, b) => b.dateKey.localeCompare(a.dateKey))
 
   // Books that have reading records
-  const booksWithRecords = store.books.filter(book =>
-    completedStatuses.some(s => {
-      const tocItem = tocItemMap.get(s.tocItemId)
-      return tocItem?.bookId === book.id
-    })
+  const completedBookIds = new Set(
+    completedStatuses.map(s => tocItemMap.get(s.tocItemId)?.bookId).filter(Boolean)
   )
+  const booksWithRecords = store.books.filter(book => completedBookIds.has(book.id))
 
   return (
     <div className="px-6 py-6">
@@ -112,10 +109,10 @@ export default function TimelinePage() {
         <div className="relative">
           {groups.map((group, groupIdx) => {
             // Group chapters by book within each day
-            const bookMap = new Map<string, typeof group.chapters>()
+            const chaptersByBook = new Map<string, typeof group.chapters>()
             for (const ch of group.chapters) {
-              if (!bookMap.has(ch.bookId)) bookMap.set(ch.bookId, [])
-              bookMap.get(ch.bookId)!.push(ch)
+              if (!chaptersByBook.has(ch.bookId)) chaptersByBook.set(ch.bookId, [])
+              chaptersByBook.get(ch.bookId)!.push(ch)
             }
 
             return (
@@ -133,8 +130,8 @@ export default function TimelinePage() {
 
                 {/* Dashed branch line + book groups */}
                 <div className="ml-2.5 border-l-2 border-dashed border-[#d0cfcf] pl-5 mt-2 mb-2">
-                  {[...bookMap.entries()].map(([bookId, chapters]) => {
-                    const book = store.books.find(b => b.id === bookId)
+                  {[...chaptersByBook.entries()].map(([bookId, chapters]) => {
+                    const book = bookMap.get(bookId)
                     return (
                       <div key={bookId} className="mb-3 last:mb-0">
                         {/* Book row */}
@@ -175,9 +172,7 @@ export default function TimelinePage() {
 
                 {/* Divider between days */}
                 {groupIdx < groups.length - 1 && (
-                  <div className="h-px bg-transparent ml-2.5 relative">
-                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#e0dfde]" />
-                  </div>
+                  <div className="ml-2.5 w-0.5 h-4 bg-[#e0dfde]" />
                 )}
               </div>
             )
