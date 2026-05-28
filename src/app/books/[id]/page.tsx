@@ -166,18 +166,18 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Douban metadata */}
             {hasDoubanMeta && (
-              <div className="flex flex-col gap-1.5 text-[13px]">
+              <div className="flex flex-col gap-2 text-[13px]">
                 {(book.publisher || book.publishDate) && (
                   <div className="flex gap-5">
                     {book.publisher && (
                       <div>
-                        <span className="text-[#9b958e]">出版社 </span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">出版社</span>
                         <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
                       </div>
                     )}
                     {book.publishDate && (
                       <div>
-                        <span className="text-[#9b958e]">出版日期 </span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">出版日期</span>
                         <span className="text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
                       </div>
                     )}
@@ -185,20 +185,24 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 )}
                 {book.isbn && (
                   <div>
-                    <span className="text-[#9b958e]">ISBN </span>
+                    <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">ISBN</span>
                     <span className="text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
                   </div>
                 )}
-                {book.doubanRating && (
-                  <div>
-                    <span className="inline-block w-14 text-[#9b958e]">豆瓣评分</span>
-                    <span className="text-[rgba(0,0,0,0.65)]">{book.doubanRating}</span>
-                  </div>
-                )}
-                {book.doubanUrl && (
-                  <div>
-                    <span className="text-[#9b958e]">豆瓣链接 </span>
-                    <a href={book.doubanUrl} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.doubanUrl.match(/subject\/(\d+)/)?.[1] ?? book.doubanUrl}</a>
+                {(book.doubanRating || book.doubanUrl) && (
+                  <div className="flex gap-5">
+                    {book.doubanRating && (
+                      <div>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣评分</span>
+                        <span className="text-[rgba(0,0,0,0.65)]">{book.doubanRating}</span>
+                      </div>
+                    )}
+                    {book.doubanUrl && (
+                      <div>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣链接</span>
+                        <a href={book.doubanUrl} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.doubanUrl.match(/subject\/(\d+)/)?.[1] ?? book.doubanUrl}</a>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -231,7 +235,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           {/* Card 3: Reading info */}
           <div className="w-[300px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-4">
             {/* Status + Round */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
