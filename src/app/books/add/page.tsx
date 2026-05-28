@@ -49,6 +49,7 @@ export default function AddBookPage() {
   const [publishDate, setPublishDate] = useState("")
   const [isbn, setIsbn] = useState("")
   const [coverUrl, setCoverUrl] = useState("")
+  const [doubanRating, setDoubanRating] = useState("")
   const [customCover, setCustomCover] = useState<string | null>(null)
   const [imgError, setImgError] = useState(false)
 
@@ -56,7 +57,6 @@ export default function AddBookPage() {
   const [tocRawText, setTocRawText] = useState("")
   const [tocLoading, setTocLoading] = useState(false)
   const [tocError, setTocError] = useState<string | null>(null)
-  const [showTocEditor, setShowTocEditor] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -69,6 +69,11 @@ export default function AddBookPage() {
       setParseError("请输入有效的豆瓣链接")
       return
     }
+
+    // Normalize Douban URL: strip query params, keep clean path
+    const match = trimmed.match(/(https?:\/\/book\.douban\.com\/subject\/\d+\/?)/)
+    const cleanUrl = match ? match[1] : trimmed
+    setDoubanUrl(cleanUrl)
 
     setParsing(true)
     setParseError(null)
@@ -88,10 +93,16 @@ export default function AddBookPage() {
         setPublishDate(data.publishDate || "")
         setIsbn(data.isbn || "")
         setCoverUrl(data.coverUrl || "")
+        setDoubanRating(data.doubanRating || "")
         setImgError(false)
 
         if (data.tocText) {
-          await handleAiParse(data.tocText)
+          setTocRawText(data.tocText)
+          const items = parseOutline(data.tocText, "temp")
+          setTocItems(items)
+        } else {
+          setTocRawText("")
+          setTocItems([])
         }
       }
     } catch {
@@ -134,7 +145,6 @@ export default function AddBookPage() {
         throw new Error("AI 返回的内容无法解析为目录")
       }
       setTocItems(items)
-      setShowTocEditor(true)
     } catch (err: unknown) {
       setTocError(err instanceof Error ? err.message : "AI 整理失败")
       setTocRawText(text)
@@ -159,11 +169,13 @@ export default function AddBookPage() {
     if (!canImport) return
 
     const effectiveCover = customCover || coverUrl || undefined
-    const meta: { publisher?: string; publishDate?: string; isbn?: string; coverUrl?: string } = {}
+    const meta: { publisher?: string; publishDate?: string; isbn?: string; coverUrl?: string; doubanRating?: string; doubanUrl?: string } = {}
     if (publisher.trim()) meta.publisher = publisher.trim()
     if (publishDate.trim()) meta.publishDate = publishDate.trim()
     if (isbn.trim()) meta.isbn = isbn.trim()
     if (effectiveCover) meta.coverUrl = effectiveCover
+    if (doubanRating.trim()) meta.doubanRating = doubanRating.trim()
+    if (doubanUrl.trim()) meta.doubanUrl = doubanUrl.trim()
 
     const hasStructuredToc = tocItems.length > 0
     const tocText = hasStructuredToc ? "" : tocRawText.trim()
@@ -277,7 +289,7 @@ export default function AddBookPage() {
         </div>
 
         {/* Metadata row */}
-        <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="mt-4 grid grid-cols-4 gap-3">
           <div>
             <label className="text-[12px] text-[#615d59] block mb-1">出版社</label>
             <input
@@ -305,6 +317,12 @@ export default function AddBookPage() {
               className="w-full h-8 px-2.5 border border-[rgba(0,0,0,0.1)] rounded-md text-[12px] outline-none focus:border-[#0075de]"
             />
           </div>
+          <div>
+            <label className="text-[12px] text-[#615d59] block mb-1">豆瓣评分</label>
+            <div className="h-8 px-2.5 flex items-center text-[12px] text-[rgba(0,0,0,0.65)]">
+              {doubanRating || <span className="text-[#c5bfb8]">—</span>}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -316,7 +334,7 @@ export default function AddBookPage() {
           <label className="text-[13px] font-medium text-[rgba(0,0,0,0.95)]">
             目录 <span className="text-[#9b958e] text-[12px] font-normal">(可选)</span>
           </label>
-          {!showTocEditor && !tocLoading && (
+          {!tocLoading && (
             <button
               onClick={() => {
                 if (tocRawText.trim()) {
@@ -342,23 +360,13 @@ export default function AddBookPage() {
           <p className="mb-2 text-[12px] text-[#d83931]">{tocError}</p>
         )}
 
-        {showTocEditor && !tocLoading ? (
+        {!tocLoading && (
           <TocTreeEditor
             items={tocItems}
             onChange={setTocItems}
             bookId="temp"
           />
-        ) : !tocLoading ? (
-          <div>
-            <textarea
-              value={tocRawText}
-              onChange={e => setTocRawText(e.target.value)}
-              placeholder={"粘贴目录文本，然后点击「AI 整理」自动格式化\n\n支持各种格式，AI 会自动识别并整理成标准大纲"}
-              className="w-full min-h-[120px] px-3 py-2 border border-[rgba(0,0,0,0.1)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] resize-y"
-            />
-            <p className="mt-1.5 text-[11px] text-[#9b958e]">目录为可选，可稍后在编辑页添加</p>
-          </div>
-        ) : null}
+        )}
       </section>
 
       {/* Bottom actions */}

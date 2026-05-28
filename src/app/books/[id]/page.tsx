@@ -2,10 +2,13 @@
 
 import { use, useState, useRef, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useBookStore } from "@/lib/store"
 import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
 import { NewRoundDialog } from "@/components/new-round-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import type { Book } from "@/lib/types"
 
 const STATUS_OPTIONS: { value: NonNullable<Book['readingStatus']>; label: string; icon: string; color: string; bg: string; border: string }[] = [
@@ -32,11 +35,13 @@ function parseDate(str: string): number | null {
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [roundDialogOpen, setRoundDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
   const [editingDate, setEditingDate] = useState<'startedReadingAt' | 'finishedReadingAt' | null>(null)
   const [tagInput, setTagInput] = useState("")
   const store = useBookStore()
+  const router = useRouter()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const dateInputRef = useRef<HTMLInputElement>(null)
 
@@ -118,27 +123,34 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     }
   }
 
-  const hasDoubanMeta = book.publisher || book.publishDate || book.isbn
+  const hasDoubanMeta = book.publisher || book.publishDate || book.isbn || book.doubanRating || book.doubanUrl
 
   return (
     <div>
       <div className="px-6 py-5">
-        <Link href="/bookshelf" className="mb-3 inline-block text-sm text-[#0075de] hover:underline">
-          &larr; 返回书架
-        </Link>
+        <div className="mb-3 flex items-center justify-between">
+          <Link href="/bookshelf" className="text-sm text-[#0075de] hover:underline">
+            &larr; 返回书架
+          </Link>
+          <button
+            onClick={() => setDeleteDialogOpen(true)}
+            className="text-sm text-[#d83931] hover:text-[#b71c1c] border border-[#d83931] hover:border-[#b71c1c] rounded-md px-3 py-1 cursor-pointer"
+          >
+            删除书籍
+          </button>
+        </div>
         <div className="flex items-stretch gap-5">
           {/* Card 1: Cover */}
-          <div className="w-[160px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-4 flex flex-col items-center justify-center">
-            <div className="relative w-[120px] h-[170px] rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
-              {book.coverUrl ? (
+          <div className="w-[180px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-2 flex flex-col items-center justify-center">
+            <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
+              <div className="absolute inset-0 flex items-center justify-center text-3xl">📘</div>
+              {book.coverUrl && (
                 <img
                   src={book.coverUrl}
                   alt={book.title}
-                  className="w-full h-full object-cover"
+                  className="relative w-full h-full object-cover"
                   onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl">📘</div>
               )}
             </div>
           </div>
@@ -146,31 +158,47 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           {/* Card 2: Book info */}
           <div className="flex-1 min-w-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-3">
             <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">{book.title}</h1>
-            <p className="text-[13px] text-[#615d59]">
+            <p className="text-[14px] text-[#615d59]">
               <Link href={`/authors/${book.authorId}`} className="text-[#0075de] hover:underline">
                 {author?.name ?? "未知"}
               </Link>
             </p>
 
-            {/* Douban metadata — vertical layout */}
+            {/* Douban metadata */}
             {hasDoubanMeta && (
-              <div className="flex flex-col gap-1.5 text-[12px]">
-                {book.publisher && (
-                  <div>
-                    <span className="inline-block w-14 text-[#9b958e]">出版社</span>
-                    <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
-                  </div>
-                )}
-                {book.publishDate && (
-                  <div>
-                    <span className="inline-block w-14 text-[#9b958e]">出版日期</span>
-                    <span className="text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
+              <div className="flex flex-col gap-1.5 text-[13px]">
+                {(book.publisher || book.publishDate) && (
+                  <div className="flex gap-5">
+                    {book.publisher && (
+                      <div>
+                        <span className="text-[#9b958e]">出版社 </span>
+                        <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
+                      </div>
+                    )}
+                    {book.publishDate && (
+                      <div>
+                        <span className="text-[#9b958e]">出版日期 </span>
+                        <span className="text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 {book.isbn && (
                   <div>
-                    <span className="inline-block w-14 text-[#9b958e]">ISBN</span>
+                    <span className="text-[#9b958e]">ISBN </span>
                     <span className="text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
+                  </div>
+                )}
+                {book.doubanRating && (
+                  <div>
+                    <span className="inline-block w-14 text-[#9b958e]">豆瓣评分</span>
+                    <span className="text-[rgba(0,0,0,0.65)]">{book.doubanRating}</span>
+                  </div>
+                )}
+                {book.doubanUrl && (
+                  <div>
+                    <span className="text-[#9b958e]">豆瓣链接 </span>
+                    <a href={book.doubanUrl} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.doubanUrl.match(/subject\/(\d+)/)?.[1] ?? book.doubanUrl}</a>
                   </div>
                 )}
               </div>
@@ -178,9 +206,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Tags — pushed to bottom */}
             <div className="mt-auto flex items-center gap-1.5 flex-wrap">
-              <span className="text-[12px] text-[#9b958e] min-w-[28px]">标签</span>
+              <span className="text-[13px] text-[#9b958e] min-w-[28px]">标签</span>
               {(book.tags ?? []).map(tag => (
-                <span key={tag} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[12px] text-[#615d59]">
+                <span key={tag} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[13px] text-[#615d59]">
                   {tag}
                   <button
                     onClick={() => store.removeBookTag(id, tag)}
@@ -195,19 +223,19 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 placeholder="添加标签"
-                className="border border-dashed border-[rgba(0,0,0,0.15)] rounded px-2 py-0.5 text-[12px] text-[#615d59] bg-transparent outline-none w-20 placeholder:text-[#c5bfb8]"
+                className="border border-dashed border-[rgba(0,0,0,0.15)] rounded px-2 py-0.5 text-[13px] text-[#615d59] bg-transparent outline-none w-20 placeholder:text-[#c5bfb8]"
               />
             </div>
           </div>
 
           {/* Card 3: Reading info */}
-          <div className="w-[200px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-4">
+          <div className="w-[300px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-4">
             {/* Status + Round */}
             <div className="flex items-center gap-2">
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[12px] font-medium cursor-pointer border"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[13px] font-medium cursor-pointer border"
                   style={statusInfo ? { background: statusInfo.bg, color: statusInfo.color, borderColor: statusInfo.border } : { background: '#f6f5f4', color: '#615d59', borderColor: 'rgba(0,0,0,0.1)' }}
                 >
                   {statusInfo ? `${statusInfo.icon} ${statusInfo.label}` : '设置状态'}
@@ -243,19 +271,19 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Dates */}
             <div>
-              <div className="text-[11px] text-[#9b958e] mb-1">开始日期</div>
+              <div className="text-[12px] text-[#9b958e] mb-1">开始日期</div>
               {editingDate === 'startedReadingAt' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
                   defaultValue={book.startedReadingAt ? formatDate(book.startedReadingAt) : ''}
                   onChange={e => handleDateChange('startedReadingAt', e.target.value)}
-                  className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
                 />
               ) : (
                 <span
                   onClick={() => setEditingDate('startedReadingAt')}
-                  className={`text-[13px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                  className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
                     book.startedReadingAt
                       ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
                       : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
@@ -267,19 +295,19 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             </div>
 
             <div>
-              <div className="text-[11px] text-[#9b958e] mb-1">完成日期</div>
+              <div className="text-[12px] text-[#9b958e] mb-1">完成日期</div>
               {editingDate === 'finishedReadingAt' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
                   defaultValue={book.finishedReadingAt ? formatDate(book.finishedReadingAt) : ''}
                   onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
-                  className="text-[13px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
                 />
               ) : (
                 <span
                   onClick={() => setEditingDate('finishedReadingAt')}
-                  className={`text-[13px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                  className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
                     book.finishedReadingAt
                       ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
                       : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
@@ -292,7 +320,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Progress bar — pushed to bottom */}
             <div className="mt-auto">
-              <div className="mb-1 flex justify-between text-xs">
+              <div className="mb-1 flex justify-between text-[13px]">
                 <span className="text-[#615d59]">阅读进度</span>
                 <span className="font-semibold text-[#097fe8]">{checkedCount}/{totalCount} &middot; {progress}%</span>
               </div>
@@ -329,6 +357,28 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           store.startNewRound(id, inherit)
         }}
       />
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>删除书籍</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-[13px] text-[#615d59]">确定要删除《{book.title}》吗？此操作不可撤销。</p>
+          </div>
+          <div className="flex justify-end gap-2 border-t border-[rgba(0,0,0,0.1)] pt-4">
+            <Button variant="ghost" onClick={() => setDeleteDialogOpen(false)}>取消</Button>
+            <Button
+              className="bg-[#d83931] hover:bg-[#b71c1c]"
+              onClick={() => {
+                store.deleteBook(id)
+                router.push("/bookshelf")
+              }}
+            >
+              删除
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

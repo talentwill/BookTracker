@@ -15,6 +15,8 @@ export interface Book {
   publishDate?: string
   isbn?: string
   coverUrl?: string
+  doubanRating?: string
+  doubanUrl?: string
   readingStatus?: 'reading' | 'finished' | 'dropped' | 'idle' | 'want'
   startedReadingAt?: number
   finishedReadingAt?: number

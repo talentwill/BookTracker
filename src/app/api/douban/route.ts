@@ -77,6 +77,12 @@ export async function POST(req: NextRequest) {
       || $('#mainpic img').attr('src')
       || undefined
 
+    // Rating
+    const doubanRating = $('strong.rating_num').text().trim() || undefined
+
+    // Douban URL
+    const doubanUrl = `https://book.douban.com/subject/${bookId}/`
+
     // TOC text (best-effort)
     let tocText: string | null = null
     const tocHeader = $('h2, h3, .pl').filter((_, el) => $(el).text().includes('目录')).first()
@@ -91,7 +97,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "无法解析该页面，请确认链接是否正确" }, { status: 422 })
     }
 
-    return NextResponse.json({ title, author, publisher, publishDate, isbn, coverUrl, tocText })
+    return NextResponse.json({ title, author, publisher, publishDate, isbn, coverUrl, tocText, doubanRating, doubanUrl })
   } catch {
     return NextResponse.json({ error: "解析失败，请重试" }, { status: 500 })
   }
