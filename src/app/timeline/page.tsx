@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useBookStore } from "@/lib/store"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface DayGroup {
   dateKey: string
@@ -115,16 +116,17 @@ export default function TimelinePage() {
     <div className="px-6 py-6">
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">阅读时间线</h1>
-        <select
-          value={selectedBookId}
-          onChange={e => setSelectedBookId(e.target.value)}
-          className="border border-[rgba(0,0,0,0.15)] rounded-md px-3 py-1.5 text-[13px] text-[rgba(0,0,0,0.85)] bg-white outline-none focus:border-[#0075de]"
-        >
-          <option value="all">全部书籍</option>
-          {booksWithRecords.map(book => (
-            <option key={book.id} value={book.id}>{book.title}</option>
-          ))}
-        </select>
+        <Select value={selectedBookId} onValueChange={v => setSelectedBookId(v ?? "all")}>
+          <SelectTrigger className="text-[13px] h-8 rounded-md border-[rgba(0,0,0,0.15)]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value="all">全部书籍</SelectItem>
+            {booksWithRecords.map(book => (
+              <SelectItem key={book.id} value={book.id}>{book.title}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {groups.length === 0 ? (
