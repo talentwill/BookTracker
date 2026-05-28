@@ -35,8 +35,6 @@ export default function HomePage() {
     })
     .filter(b => !b.isComplete)
 
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? "早上好 ☀️" : hour < 18 ? "下午好 🌤️" : "晚上好 🌙"
   const dateStr = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })
 
   const streak = calculateStreak(store.chapterStatuses)
@@ -44,8 +42,7 @@ export default function HomePage() {
   return (
     <div className="px-6 py-6">
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-[rgba(0,0,0,0.95)]">{greeting}</h1>
-        <p className="mt-0.5 text-sm text-[#615d59]">{dateStr}</p>
+        <p className="text-sm text-[#615d59]">{dateStr}</p>
       </div>
 
       <div className="mb-6 flex gap-3">
