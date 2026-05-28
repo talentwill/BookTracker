@@ -7,6 +7,7 @@ const tabs = [
   { label: "首页", href: "/" },
   { label: "书架", href: "/bookshelf" },
   { label: "作者", href: "/authors" },
+  { label: "时间线", href: "/timeline" },
 ] as const
 
 export function Navbar() {
