@@ -149,10 +149,10 @@ export default function TimelinePage() {
             onChange={e => setSearchQuery(e.target.value)}
             onFocus={() => { setSearchOpen(true); setSearchQuery("") }}
             placeholder="搜索书籍..."
-            className="border border-[rgba(0,0,0,0.15)] rounded-md px-3 py-1.5 text-[13px] text-[rgba(0,0,0,0.85)] bg-white outline-none focus:border-[#0075de] w-48"
+            className="border border-[rgba(0,0,0,0.15)] rounded-md px-3 py-1.5 text-[13px] text-[rgba(0,0,0,0.85)] bg-white outline-none focus:border-[#0075de] w-64"
           />
           {searchOpen && (
-            <div className="absolute top-full right-0 mt-1 w-64 max-h-60 overflow-y-auto bg-white border border-[rgba(0,0,0,0.1)] rounded-lg shadow-lg z-10 py-1">
+            <div className="absolute top-full right-0 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-[rgba(0,0,0,0.1)] rounded-lg shadow-lg z-10 py-1">
               <button
                 onClick={() => { setSelectedBookId("all"); setSearchOpen(false); setSearchQuery("") }}
                 className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] ${selectedBookId === "all" ? "text-[#0075de] font-medium" : "text-[rgba(0,0,0,0.85)]"}`}
