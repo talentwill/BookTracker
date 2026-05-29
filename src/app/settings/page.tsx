@@ -1,15 +1,38 @@
 "use client"
 
-import { useState } from "react"
-import { useAIConfigStore } from "@/lib/ai-config-store"
+import { useState, useEffect } from "react"
+import { useProfile, useUpdateProfile } from "@/lib/hooks/use-profile"
 
 export default function SettingsPage() {
-  const store = useAIConfigStore()
+  const { data: profile } = useProfile()
+  const updateProfile = useUpdateProfile()
   const [saved, setSaved] = useState(false)
+  const [apiKey, setApiKey] = useState("")
+  const [baseUrl, setBaseUrl] = useState("")
+  const [model, setModel] = useState("")
+
+  useEffect(() => {
+    if (profile) {
+      setApiKey(profile.ai_api_key ?? "")
+      setBaseUrl(profile.ai_base_url ?? "")
+      setModel(profile.ai_model ?? "")
+    }
+  }, [profile])
 
   function handleSave() {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    updateProfile.mutate(
+      {
+        ai_api_key: apiKey,
+        ai_base_url: baseUrl,
+        ai_model: model,
+      },
+      {
+        onSuccess: () => {
+          setSaved(true)
+          setTimeout(() => setSaved(false), 2000)
+        },
+      }
+    )
   }
 
   return (
@@ -24,9 +47,9 @@ export default function SettingsPage() {
           {(['claude', 'openai'] as const).map(p => (
             <button
               key={p}
-              onClick={() => store.setDefaultProvider(p)}
+              onClick={() => updateProfile.mutate({ ai_provider: p })}
               className={`flex-1 py-2 px-3 rounded-lg text-[13px] font-semibold cursor-pointer border transition-colors ${
-                store.defaultProvider === p
+                profile?.ai_provider === p
                   ? 'border-[#0075de] bg-[#f2f9ff] text-[#0075de]'
                   : 'border-[rgba(0,0,0,0.15)] bg-white text-[#615d59] hover:border-[rgba(0,0,0,0.3)]'
               }`}
@@ -39,11 +62,15 @@ export default function SettingsPage() {
 
       <div className="border-t border-[rgba(0,0,0,0.06)] mb-5" />
 
-      {/* Claude config */}
+      {/* AI config */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)]">Claude</span>
-          <span className="text-[11px] text-[#9b958e] bg-[#f6f5f4] px-1.5 py-0.5 rounded">Anthropic</span>
+          <span className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)]">
+            {profile?.ai_provider === 'openai' ? 'OpenAI' : 'Claude'}
+          </span>
+          <span className="text-[11px] text-[#9b958e] bg-[#f6f5f4] px-1.5 py-0.5 rounded">
+            {profile?.ai_provider === 'openai' ? 'OpenAI' : 'Anthropic'}
+          </span>
         </div>
 
         <div className="space-y-3">
@@ -51,17 +78,17 @@ export default function SettingsPage() {
             <label className="text-[12px] text-[#615d59] block mb-1">API Key</label>
             <input
               type="password"
-              value={store.claude.apiKey}
-              onChange={e => store.updateClaude({ apiKey: e.target.value })}
-              placeholder="sk-ant-..."
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder={profile?.ai_provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
               className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
             />
           </div>
           <div>
             <label className="text-[12px] text-[#615d59] block mb-1">Base URL</label>
             <input
-              value={store.claude.baseUrl}
-              onChange={e => store.updateClaude({ baseUrl: e.target.value })}
+              value={baseUrl}
+              onChange={e => setBaseUrl(e.target.value)}
               className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
             />
             <span className="text-[11px] text-[#9b958e] mt-1 block">留空使用默认地址，或填入代理地址</span>
@@ -69,48 +96,8 @@ export default function SettingsPage() {
           <div>
             <label className="text-[12px] text-[#615d59] block mb-1">模型</label>
             <input
-              value={store.claude.model}
-              onChange={e => store.updateClaude({ model: e.target.value })}
-              className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-[rgba(0,0,0,0.06)] mb-5" />
-
-      {/* OpenAI config */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)]">OpenAI</span>
-          <span className="text-[11px] text-[#9b958e] bg-[#f6f5f4] px-1.5 py-0.5 rounded">OpenAI</span>
-        </div>
-
-        <div className="space-y-3">
-          <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">API Key</label>
-            <input
-              type="password"
-              value={store.openai.apiKey}
-              onChange={e => store.updateOpenai({ apiKey: e.target.value })}
-              placeholder="sk-..."
-              className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
-            />
-          </div>
-          <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">Base URL</label>
-            <input
-              value={store.openai.baseUrl}
-              onChange={e => store.updateOpenai({ baseUrl: e.target.value })}
-              className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
-            />
-            <span className="text-[11px] text-[#9b958e] mt-1 block">留空使用默认地址，或填入代理地址</span>
-          </div>
-          <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">模型</label>
-            <input
-              value={store.openai.model}
-              onChange={e => store.updateOpenai({ model: e.target.value })}
+              value={model}
+              onChange={e => setModel(e.target.value)}
               className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-white"
             />
           </div>
