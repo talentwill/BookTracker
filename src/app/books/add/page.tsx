@@ -1,43 +1,46 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useBookStore } from "@/lib/store"
 import { useAIConfigStore } from "@/lib/ai-config-store"
 import { parseOutline } from "@/lib/outline-parser"
+import { useAddBook } from "@/lib/hooks/use-books"
+import { useReplaceBookToc } from "@/lib/hooks/use-toc-items"
+import { uploadCoverFromUrl, uploadCover } from "@/lib/supabase/storage"
 import { TocTreeEditor } from "@/components/toc-tree-editor"
 import type { TocItem } from "@/lib/types"
 
-async function compressImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const img = new Image()
-      img.onload = () => {
-        const MAX_WIDTH = 400
-        const ratio = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1
-        const w = Math.round(img.width * ratio)
-        const h = Math.round(img.height * ratio)
-        const canvas = document.createElement("canvas")
-        canvas.width = w
-        canvas.height = h
-        const ctx = canvas.getContext("2d")!
-        ctx.drawImage(img, 0, 0, w, h)
-        resolve(canvas.toDataURL("image/jpeg", 0.7))
-      }
-      img.onerror = reject
-      img.src = reader.result as string
+function tocItemsToRpcFormat(items: TocItem[]): Array<{ title: string; indent: number; order: number }> {
+  const indentMap = new Map<string, number>()
+  const itemMap = new Map(items.map(i => [i.id, i]))
+
+  function getIndent(id: string): number {
+    if (indentMap.has(id)) return indentMap.get(id)!
+    const item = itemMap.get(id)
+    if (!item || !item.parentId) {
+      indentMap.set(id, 0)
+      return 0
     }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+    const indent = getIndent(item.parentId) + 1
+    indentMap.set(id, indent)
+    return indent
+  }
+
+  for (const item of items) getIndent(item.id)
+
+  return items.map(item => ({
+    title: item.title,
+    indent: indentMap.get(item.id) ?? 0,
+    order: item.order,
+  }))
 }
 
 export default function AddBookPage() {
   const router = useRouter()
-  const store = useBookStore()
   const aiConfig = useAIConfigStore()
+  const addBook = useAddBook()
+  useReplaceBookToc()
 
   const [doubanUrl, setDoubanUrl] = useState("")
   const [parsing, setParsing] = useState(false)
@@ -49,8 +52,10 @@ export default function AddBookPage() {
   const [publishDate, setPublishDate] = useState("")
   const [isbn, setIsbn] = useState("")
   const [coverUrl, setCoverUrl] = useState("")
+  const [doubanId, setDoubanId] = useState("")
   const [doubanRating, setDoubanRating] = useState("")
-  const [customCover, setCustomCover] = useState<string | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [imgError, setImgError] = useState(false)
 
   const [tocItems, setTocItems] = useState<TocItem[]>([])
@@ -59,6 +64,12 @@ export default function AddBookPage() {
   const [tocError, setTocError] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    return () => {
+      if (coverPreview) URL.revokeObjectURL(coverPreview)
+    }
+  }, [coverPreview])
 
   const canImport = title.trim().length > 0
 
@@ -74,6 +85,10 @@ export default function AddBookPage() {
     const match = trimmed.match(/(https?:\/\/book\.douban\.com\/subject\/\d+\/?)/)
     const cleanUrl = match ? match[1] : trimmed
     setDoubanUrl(cleanUrl)
+
+    // Extract doubanId from URL
+    const idMatch = cleanUrl.match(/subject\/(\d+)/)
+    if (idMatch) setDoubanId(idMatch[1])
 
     setParsing(true)
     setParseError(null)
@@ -153,49 +168,54 @@ export default function AddBookPage() {
     }
   }
 
-  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (coverPreview) URL.revokeObjectURL(coverPreview)
+    setCoverFile(file)
+    setCoverPreview(URL.createObjectURL(file))
+    setImgError(false)
+  }
+
+  async function handleImport() {
+    if (!canImport || addBook.isPending) return
+
     try {
-      const compressed = await compressImage(file)
-      setCustomCover(compressed)
-      setImgError(false)
-    } catch {
-      setParseError("封面压缩失败，请换一张图片")
+      // Upload cover to Supabase storage
+      let coverStoragePath: string | undefined
+      if (coverFile) {
+        coverStoragePath = await uploadCover(coverFile, crypto.randomUUID())
+      } else if (coverUrl && doubanId) {
+        coverStoragePath = await uploadCoverFromUrl(coverUrl, doubanId)
+      }
+
+      const hasStructuredToc = tocItems.length > 0
+      const tocText = hasStructuredToc ? "" : tocRawText.trim()
+
+      const meta: Record<string, unknown> = {}
+      if (publisher.trim()) meta.publisher = publisher.trim()
+      if (publishDate.trim()) meta.publishDate = publishDate.trim()
+      if (isbn.trim()) meta.isbn = isbn.trim()
+      if (coverStoragePath) meta.coverUrl = coverStoragePath
+      if (doubanRating.trim()) meta.doubanRating = doubanRating.trim()
+      if (doubanId) meta.doubanId = doubanId
+      if (doubanUrl.trim()) meta.doubanUrl = doubanUrl.trim()
+      if (hasStructuredToc) meta.tocItems = tocItemsToRpcFormat(tocItems)
+
+      const result = await addBook.mutateAsync({
+        title: title.trim(),
+        authorName: authorName.trim() || "未知作者",
+        tocText,
+        meta: Object.keys(meta).length > 0 ? meta : undefined,
+      })
+
+      router.push("/books/" + result.bookId)
+    } catch (err) {
+      console.error("Failed to add book:", err)
     }
   }
 
-  function handleImport() {
-    if (!canImport) return
-
-    const effectiveCover = customCover || coverUrl || undefined
-    const meta: { publisher?: string; publishDate?: string; isbn?: string; coverUrl?: string; doubanRating?: string; doubanUrl?: string } = {}
-    if (publisher.trim()) meta.publisher = publisher.trim()
-    if (publishDate.trim()) meta.publishDate = publishDate.trim()
-    if (isbn.trim()) meta.isbn = isbn.trim()
-    if (effectiveCover) meta.coverUrl = effectiveCover
-    if (doubanRating.trim()) meta.doubanRating = doubanRating.trim()
-    if (doubanUrl.trim()) meta.doubanUrl = doubanUrl.trim()
-
-    const hasStructuredToc = tocItems.length > 0
-    const tocText = hasStructuredToc ? "" : tocRawText.trim()
-
-    const bookId = store.addBook(
-      title.trim(),
-      authorName.trim() || "未知作者",
-      tocText,
-      Object.keys(meta).length > 0 ? meta : undefined
-    )
-
-    if (hasStructuredToc) {
-      const realItems = tocItems.map(item => ({ ...item, bookId }))
-      store.replaceBookToc(bookId, realItems)
-    }
-
-    router.push("/books/" + bookId)
-  }
-
-  const displayCover = customCover || coverUrl
+  const displayCover = coverPreview || coverUrl
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-5">
@@ -379,10 +399,10 @@ export default function AddBookPage() {
         </Link>
         <button
           onClick={handleImport}
-          disabled={!canImport}
+          disabled={!canImport || addBook.isPending}
           className="h-9 px-5 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          导入书籍
+          {addBook.isPending ? "导入中..." : "导入书籍"}
         </button>
       </div>
     </div>
