@@ -18,11 +18,11 @@ function tocItemsToRpcFormat(items: TocItem[]): Array<{ title: string; indent: n
   function getIndent(id: string): number {
     if (indentMap.has(id)) return indentMap.get(id)!
     const item = itemMap.get(id)
-    if (!item || !item.parentId) {
+    if (!item || !item.parent_id) {
       indentMap.set(id, 0)
       return 0
     }
-    const indent = getIndent(item.parentId) + 1
+    const indent = getIndent(item.parent_id) + 1
     indentMap.set(id, indent)
     return indent
   }
@@ -32,7 +32,7 @@ function tocItemsToRpcFormat(items: TocItem[]): Array<{ title: string; indent: n
   return items.map(item => ({
     title: item.title,
     indent: indentMap.get(item.id) ?? 0,
-    order: item.order,
+    order: item.sort_order,
   }))
 }
 

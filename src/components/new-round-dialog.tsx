@@ -7,18 +7,18 @@ import { Button } from "@/components/ui/button"
 interface NewRoundDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  roundNumber: number
+  round_number: number
   onConfirm: (inheritSchedule: boolean) => void
 }
 
-export function NewRoundDialog({ open, onOpenChange, roundNumber, onConfirm }: NewRoundDialogProps) {
+export function NewRoundDialog({ open, onOpenChange, round_number, onConfirm }: NewRoundDialogProps) {
   const [inherit, setInherit] = useState(true)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>开始第 {roundNumber} 轮阅读</DialogTitle>
+          <DialogTitle>开始第 {round_number} 轮阅读</DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <p className="mb-4 text-[13px] text-[#615d59]">是否继承上一轮的排期计划？</p>

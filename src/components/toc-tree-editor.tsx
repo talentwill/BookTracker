@@ -22,12 +22,12 @@ interface TocTreeEditorProps {
 function buildChildrenMap(items: TocItem[]) {
   const map = new Map<string | null, TocItem[]>()
   for (const item of items) {
-    const key = item.parentId ?? null
+    const key = item.parent_id ?? null
     if (!map.has(key)) map.set(key, [])
     map.get(key)!.push(item)
   }
   for (const [, children] of map) {
-    children.sort((a, b) => a.order - b.order)
+    children.sort((a, b) => a.sort_order - b.sort_order)
   }
   return map
 }
@@ -56,7 +56,7 @@ function reindex(items: TocItem[]): TocItem[] {
   function walk(parentId: string | null) {
     const children = childrenMap.get(parentId) ?? []
     children.forEach((child, i) => {
-      result.push({ ...child, order: i })
+      result.push({ ...child, sort_order: i })
       walk(child.id)
     })
   }
@@ -270,7 +270,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
         const current = items[idx]
         const newId = crypto.randomUUID()
         const newItem: TocItem = {
-          id: newId, bookId, parentId: current.parentId, title: "", order: current.order + 1,
+          id: newId, book_id: bookId, parent_id: current.parent_id, title: "", sort_order: current.sort_order + 1,
         }
         const next = reindex([...items.slice(0, idx + 1), newItem, ...items.slice(idx + 1)])
         commitChange(next)
@@ -282,19 +282,19 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
         e.preventDefault()
         if (e.shiftKey) {
           const current = items.find(i => i.id === id)
-          if (!current?.parentId) return
-          const parent = items.find(i => i.id === current.parentId)
+          if (!current?.parent_id) return
+          const parent = items.find(i => i.id === current.parent_id)
           if (!parent) return
-          const parentSiblings = items.filter(i => i.parentId === parent.parentId)
+          const parentSiblings = items.filter(i => i.parent_id === parent.parent_id)
           const parentIdx = parentSiblings.findIndex(i => i.id === parent.id)
-          commitChange(reindex(items.map(i => i.id === id ? { ...i, parentId: parent.parentId, order: parentIdx + 1 } : i)))
+          commitChange(reindex(items.map(i => i.id === id ? { ...i, parent_id: parent.parent_id, sort_order: parentIdx + 1 } : i)))
         } else {
           const idx = ordered.findIndex(i => i.id === id)
           if (idx <= 0) return
           const current = ordered[idx]
-          const prevSibling = ordered.slice(0, idx).reverse().find(i => i.parentId === current.parentId)
+          const prevSibling = ordered.slice(0, idx).reverse().find(i => i.parent_id === current.parent_id)
           if (!prevSibling) return
-          commitChange(reindex(items.map(i => i.id === id ? { ...i, parentId: prevSibling.id } : i)))
+          commitChange(reindex(items.map(i => i.id === id ? { ...i, parent_id: prevSibling.id } : i)))
         }
         focusItem(containerRef.current!, id, "all")
         break
@@ -592,7 +592,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
           <div
             className="flex flex-col items-center justify-center py-10 text-[13px] text-[#9b958e] cursor-text"
             onClick={() => {
-              commitChange([{ id: crypto.randomUUID(), bookId, parentId: null, title: "", order: 0 }])
+              commitChange([{ id: crypto.randomUUID(), book_id: bookId, parent_id: null, title: "", sort_order: 0 }])
             }}
           >
             <p>直接粘贴目录文本，或点击此处开始输入</p>

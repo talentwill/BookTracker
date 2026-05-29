@@ -14,13 +14,7 @@ export default function BookEditPage({ params }: { params: Promise<{ id: string 
   const replaceBookToc = useReplaceBookToc()
 
   const book = books?.find(b => b.id === id)
-  const items: TocItem[] = (tocItems ?? []).map(t => ({
-    id: t.id,
-    bookId: t.book_id,
-    parentId: t.parent_id,
-    title: t.title,
-    order: t.sort_order,
-  }))
+  const items = tocItems ?? []
 
   function handleTocChange(newItems: TocItem[]) {
     replaceBookToc.mutate({
@@ -28,7 +22,7 @@ export default function BookEditPage({ params }: { params: Promise<{ id: string 
       items: newItems.map(item => ({
         title: item.title,
         indent: 0,
-        order: item.order,
+        order: item.sort_order,
       })),
     })
   }

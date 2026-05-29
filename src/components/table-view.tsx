@@ -26,7 +26,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, onUpda
 
   const allRows = items.map(item => {
     const status = statuses.get(item.id)
-    const chapterStatus = getChapterStatus(status?.scheduledDate ?? null, status?.checked ?? false, today)
+    const chapterStatus = getChapterStatus(status?.scheduled_date ?? null, status?.checked ?? false, today)
     const depth = getDepth(items, item.id)
     return { item, status, chapterStatus, depth }
   })
@@ -121,8 +121,8 @@ function Row({
     }
   }
 
-  const checkedDateStr = isDone && status?.checkedAt
-    ? new Date(status.checkedAt).toISOString().slice(0, 10)
+  const checkedDateStr = isDone && status?.checked_at
+    ? new Date(status.checked_at).toISOString().slice(0, 10)
     : null
 
   return (
@@ -151,7 +151,7 @@ function Row({
               {checkedDateStr}
             </button>
           ) : (
-            status?.scheduledDate ?? "—"
+            status?.scheduled_date ?? "—"
           )}
         </span>
         <span className="flex justify-center gap-1">
@@ -181,9 +181,9 @@ function getDepth(items: TocItem[], id: string): number {
   const map = new Map(items.map(i => [i.id, i]))
   let depth = 0
   let current = map.get(id)
-  while (current?.parentId) {
+  while (current?.parent_id) {
     depth++
-    current = map.get(current.parentId)
+    current = map.get(current.parent_id)
   }
   return depth
 }

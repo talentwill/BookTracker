@@ -18,12 +18,12 @@ export function formatToday(): string {
 export function buildTree(items: TocItem[]): Map<string | null, TocItem[]> {
   const childrenOf = new Map<string | null, TocItem[]>()
   for (const item of items) {
-    const key = item.parentId
+    const key = item.parent_id
     if (!childrenOf.has(key)) childrenOf.set(key, [])
     childrenOf.get(key)!.push(item)
   }
   for (const children of childrenOf.values()) {
-    children.sort((a, b) => a.order - b.order)
+    children.sort((a, b) => a.sort_order - b.sort_order)
   }
   return childrenOf
 }

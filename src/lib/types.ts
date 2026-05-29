@@ -2,47 +2,48 @@ export interface Author {
   id: string
   name: string
   note?: string
-  createdAt: number
+  created_at: string
 }
 
 export interface Book {
   id: string
   title: string
-  authorId: string
-  tocText: string
-  createdAt: number
+  author_id: string
+  toc_text: string
+  created_at: string
   publisher?: string
-  publishDate?: string
+  publish_date?: string
   isbn?: string
-  coverUrl?: string
-  doubanRating?: string
-  doubanUrl?: string
-  readingStatus?: 'reading' | 'finished' | 'dropped' | 'idle' | 'want'
-  startedReadingAt?: number
-  finishedReadingAt?: number
+  cover_url?: string
+  douban_rating?: string
+  douban_url?: string
+  reading_status?: 'reading' | 'finished' | 'dropped' | 'idle' | 'want'
+  started_reading_at?: string
+  finished_reading_at?: string
   tags?: string[]
+  authors?: Author
 }
 
 export interface TocItem {
   id: string
-  bookId: string
-  parentId: string | null
+  book_id: string
+  parent_id: string | null
   title: string
-  order: number
+  sort_order: number
 }
 
 export interface ReadingRound {
   id: string
-  bookId: string
-  roundNumber: number
-  startedAt: number
+  book_id: string
+  round_number: number
+  started_at: string
   status: 'active' | 'completed'
 }
 
 export interface ChapterStatus {
-  tocItemId: string
-  roundId: string
+  toc_item_id: string
+  round_id: string
   checked: boolean
-  checkedAt: number | null
-  scheduledDate: string | null
+  checked_at: string | null
+  scheduled_date: string | null
 }

@@ -52,7 +52,7 @@ export default function HomePage() {
     for (const b of books) {
       if (b.authors) map.set(b.authors.id, b.authors)
     }
-    return [...map.values()].map(mapAuthor)
+    return [...map.values()]
   }, [books])
 
   // Compute today's reading items
@@ -113,15 +113,6 @@ export default function HomePage() {
 
   const streak = calculateStreak(allStatuses ?? [])
 
-  // Map Supabase snake_case data to camelCase for existing components
-  const mappedTodayItems = todayItems.map(i => ({
-    book: mapBook(i.book),
-    tocItem: mapTocItem(i.tocItem),
-    status: mapChapterStatus(i.status),
-  }))
-
-  const mappedAllTocItems = (allTocItems ?? []).map(mapTocItem)
-
   return (
     <div className="px-6 py-6">
       <div className="mb-5">
@@ -159,9 +150,9 @@ export default function HomePage() {
           <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">今日阅读清单</h2>
         </div>
         <TodayReadingList
-          items={mappedTodayItems}
+          items={todayItems}
           authors={authors}
-          allTocItems={mappedAllTocItems}
+          allTocItems={allTocItems ?? []}
           onToggle={(tocItemId, roundId, checkedAt) => {
             toggleChapter.mutate({ tocItemId, roundId, checked: checkedAt !== undefined })
           }}
@@ -183,11 +174,11 @@ export default function HomePage() {
             {readingBooks.slice(0, 5).map(b => (
               <div key={b.book.id} className="min-w-[180px]">
                 <BookCard
-                  book={mapBook(b.book)}
-                  author={b.author ? mapAuthor(b.author) : undefined}
-                  round={b.round ? mapRound(b.round) : undefined}
-                  items={b.items.map(mapTocItem)}
-                  statuses={b.statuses.map(mapChapterStatus)}
+                  book={b.book}
+                  author={b.author}
+                  round={b.round}
+                  items={b.items}
+                  statuses={b.statuses}
                 />
               </div>
             ))}
@@ -196,67 +187,6 @@ export default function HomePage() {
       )}
     </div>
   )
-}
-
-// --- Mapping helpers: Supabase snake_case -> component camelCase ---
-
-function mapBook(book: any) {
-  return {
-    id: book.id,
-    title: book.title,
-    authorId: book.author_id,
-    tocText: book.toc_text ?? "",
-    createdAt: book.created_at,
-    publisher: book.publisher,
-    publishDate: book.publish_date,
-    isbn: book.isbn,
-    coverUrl: book.cover_url,
-    doubanRating: book.douban_rating,
-    doubanUrl: book.douban_url,
-    readingStatus: book.reading_status,
-    startedReadingAt: book.started_reading_at,
-    finishedReadingAt: book.finished_reading_at,
-    tags: book.tags,
-  }
-}
-
-function mapAuthor(author: any) {
-  return {
-    id: author.id,
-    name: author.name,
-    note: author.note,
-    createdAt: author.created_at,
-  }
-}
-
-function mapTocItem(item: any) {
-  return {
-    id: item.id,
-    bookId: item.book_id,
-    parentId: item.parent_id,
-    title: item.title,
-    order: item.sort_order,
-  }
-}
-
-function mapChapterStatus(status: any) {
-  return {
-    tocItemId: status.toc_item_id,
-    roundId: status.round_id,
-    checked: status.checked,
-    checkedAt: status.checked_at,
-    scheduledDate: status.scheduled_date,
-  }
-}
-
-function mapRound(round: any) {
-  return {
-    id: round.id,
-    bookId: round.book_id,
-    roundNumber: round.round_number,
-    startedAt: round.started_at,
-    status: round.status,
-  }
 }
 
 function calculateStreak(

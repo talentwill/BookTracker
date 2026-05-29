@@ -286,7 +286,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               {selectedRound && (
                 <RoundSelector
                   rounds={rounds}
-                  selectedRound={mapRound(selectedRound)}
+                  selectedRound={selectedRound}
                   onSelectRound={(round) => setSelectedRoundId(round.id)}
                   onNewRound={() => setRoundDialogOpen(true)}
                 />
@@ -361,9 +361,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
       {selectedRound && (
         <TableView
-          items={items.map(mapTocItem)}
-          statuses={new Map([...statuses].map(([k, v]) => [k, mapChapterStatus(v)]))}
-          round={mapRound(selectedRound)}
+          items={items}
+          statuses={statuses}
+          round={selectedRound}
           onSchedule={(tocItemId, date) => scheduleChapter.mutate({ tocItemId, roundId, date })}
           onToggle={(tocItemId, checkedAt) => {
             if (checkedAt) {
@@ -391,7 +391,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
       <NewRoundDialog
         open={roundDialogOpen}
         onOpenChange={setRoundDialogOpen}
-        roundNumber={rounds.reduce((max, r) => Math.max(max, r.round_number), 0) + 1}
+        round_number={rounds.reduce((max, r) => Math.max(max, r.round_number), 0) + 1}
         onConfirm={(inherit) => {
           startNewRound.mutate({ bookId: id, inheritSchedule: inherit })
         }}
@@ -423,34 +423,3 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   )
 }
 
-// --- Mapping helpers: Supabase snake_case -> component camelCase ---
-
-function mapTocItem(item: any) {
-  return {
-    id: item.id,
-    bookId: item.book_id,
-    parentId: item.parent_id,
-    title: item.title,
-    order: item.sort_order,
-  }
-}
-
-function mapChapterStatus(status: any) {
-  return {
-    tocItemId: status.toc_item_id,
-    roundId: status.round_id,
-    checked: status.checked,
-    checkedAt: status.checked_at,
-    scheduledDate: status.scheduled_date,
-  }
-}
-
-function mapRound(round: any) {
-  return {
-    id: round.id,
-    bookId: round.book_id,
-    roundNumber: round.round_number,
-    startedAt: round.started_at,
-    status: round.status,
-  }
-}

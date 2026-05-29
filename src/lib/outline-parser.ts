@@ -53,7 +53,7 @@ export function parseOutline(text: string, bookId: string): TocItem[] {
     if (orderCounter[parentKey] === undefined) orderCounter[parentKey] = 0
 
     const id = uuid()
-    items.push({ id, bookId, parentId, title, order: orderCounter[parentKey]++ })
+    items.push({ id, book_id: bookId, parent_id: parentId, title, sort_order: orderCounter[parentKey]++ })
     stack.push({ level, id })
   }
 

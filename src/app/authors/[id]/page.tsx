@@ -60,10 +60,10 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
         const items = allTocItems.filter((t: any) => t.book_id === book.id)
         const statuses = allStatuses.filter((s: any) => s.round_id === (activeRound?.id ?? ""))
         return {
-          book: mapBook(book),
-          round: activeRound ? mapRound(activeRound) : undefined,
-          items: items.map(mapTocItem),
-          statuses: statuses.map(mapChapterStatus),
+          book,
+          round: activeRound,
+          items,
+          statuses,
         }
       })
   }, [books, allRounds, allTocItems, allStatuses, id])
@@ -110,7 +110,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
 
       <div className="grid gap-4 p-6" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))" }}>
         {authorBooks.map(b => (
-          <BookCard key={b.book.id} book={b.book} author={mapAuthor(author)} round={b.round} items={b.items} statuses={b.statuses} />
+          <BookCard key={b.book.id} book={b.book} author={author} round={b.round} items={b.items} statuses={b.statuses} />
         ))}
       </div>
 
@@ -138,63 +138,3 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   )
 }
 
-// --- Mapping helpers: Supabase snake_case -> component camelCase ---
-
-function mapBook(book: any) {
-  return {
-    id: book.id,
-    title: book.title,
-    authorId: book.author_id,
-    tocText: book.toc_text ?? "",
-    createdAt: book.created_at,
-    publisher: book.publisher,
-    publishDate: book.publish_date,
-    isbn: book.isbn,
-    coverUrl: book.cover_url,
-    doubanRating: book.douban_rating,
-    doubanUrl: book.douban_url,
-    readingStatus: book.reading_status,
-    startedReadingAt: book.started_reading_at,
-    finishedReadingAt: book.finished_reading_at,
-    tags: book.tags,
-  }
-}
-
-function mapAuthor(author: any) {
-  return {
-    id: author.id,
-    name: author.name,
-    note: author.note,
-    createdAt: author.created_at,
-  }
-}
-
-function mapTocItem(item: any) {
-  return {
-    id: item.id,
-    bookId: item.book_id,
-    parentId: item.parent_id,
-    title: item.title,
-    order: item.sort_order,
-  }
-}
-
-function mapChapterStatus(status: any) {
-  return {
-    tocItemId: status.toc_item_id,
-    roundId: status.round_id,
-    checked: status.checked,
-    checkedAt: status.checked_at,
-    scheduledDate: status.scheduled_date,
-  }
-}
-
-function mapRound(round: any) {
-  return {
-    id: round.id,
-    bookId: round.book_id,
-    roundNumber: round.round_number,
-    startedAt: round.started_at,
-    status: round.status,
-  }
-}

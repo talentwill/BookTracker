@@ -26,8 +26,8 @@ function formatDaysFromNow(days: number): string {
 function buildFullPath(tocItem: TocItem, allTocItems: TocItem[]): string {
   const parts: string[] = [tocItem.title]
   let current = tocItem
-  while (current.parentId) {
-    const parent = allTocItems.find(t => t.id === current.parentId)
+  while (current.parent_id) {
+    const parent = allTocItems.find(t => t.id === current.parent_id)
     if (!parent) break
     parts.unshift(parent.title)
     current = parent
@@ -65,7 +65,7 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
     <>
       <div className="flex flex-col gap-4">
         {[...grouped.values()].map(({ book, items: bookItems }) => {
-          const author = authors.find(a => a.id === book.authorId)
+          const author = authors.find(a => a.id === book.author_id)
           const done = bookItems.filter(i => i.status.checked)
           const pending = bookItems.filter(i => !i.status.checked)
           return (
@@ -89,19 +89,19 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
                     </span>
                     <div className="flex shrink-0 gap-1">
                       <button
-                        onClick={() => onSchedule(item.tocItem.id, item.status.roundId, tomorrowStr)}
+                        onClick={() => onSchedule(item.tocItem.id, item.status.round_id, tomorrowStr)}
                         className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]"
                       >
                         明天
                       </button>
                       <button
-                        onClick={() => onSchedule(item.tocItem.id, item.status.roundId, nextWeekStr)}
+                        onClick={() => onSchedule(item.tocItem.id, item.status.round_id, nextWeekStr)}
                         className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]"
                       >
                         下周
                       </button>
                       <button
-                        onClick={() => setDialogItem({ tocItemId: item.tocItem.id, roundId: item.status.roundId })}
+                        onClick={() => setDialogItem({ tocItemId: item.tocItem.id, roundId: item.status.round_id })}
                         className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]"
                       >
                         已读
@@ -116,7 +116,7 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
                       {buildFullPath(item.tocItem, allTocItems)}
                     </span>
                     <button
-                      onClick={() => onToggle(item.tocItem.id, item.status.roundId)}
+                      onClick={() => onToggle(item.tocItem.id, item.status.round_id)}
                       className="shrink-0 rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]"
                     >
                       撤销

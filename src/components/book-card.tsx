@@ -28,7 +28,7 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
   const todayScheduled = statuses.filter(s => {
     if (s.checked) return false
     const today = new Date().toISOString().slice(0, 10)
-    return s.scheduledDate === today
+    return s.scheduled_date === today
   }).length
 
   const tomorrow = new Date()
@@ -36,7 +36,7 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
   const tomorrowStr = tomorrow.toISOString().slice(0, 10)
   const tomorrowScheduled = statuses.filter(s => {
     if (s.checked) return false
-    return s.scheduledDate === tomorrowStr
+    return s.scheduled_date === tomorrowStr
   }).length
 
   const gradientIndex = book.title.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % gradients.length
@@ -48,9 +48,9 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
           className="relative flex h-[130px] items-center justify-center"
           style={{ background: gradients[gradientIndex] }}
         >
-          {book.coverUrl ? (
+          {book.cover_url ? (
             <img
-              src={book.coverUrl}
+              src={book.cover_url}
               alt={book.title}
               className="w-full h-full object-cover"
               onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
@@ -60,7 +60,7 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
           )}
           <div className="absolute right-2 top-2 flex gap-1">
             <span className="rounded-full bg-[#f2f9ff] px-2 py-0.5 text-[10px] font-semibold text-[#097fe8]">
-              第{round?.roundNumber ?? 1}轮
+              第{round?.round_number ?? 1}轮
             </span>
             {isComplete && (
               <span className="rounded-full bg-[#e6f9ee] px-2 py-0.5 text-[10px] font-semibold text-[#1aae39]">
