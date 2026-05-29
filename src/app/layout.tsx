@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
 import { AuthProvider } from "@/components/auth-provider"
+import { QueryProvider } from "@/components/query-provider"
 
 export const metadata: Metadata = {
   title: "BookTracker",
@@ -13,8 +14,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body>
         <AuthProvider>
-          <Navbar />
-          <main className="mx-auto max-w-5xl">{children}</main>
+          <QueryProvider>
+            <Navbar />
+            <main className="mx-auto max-w-5xl">{children}</main>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>
