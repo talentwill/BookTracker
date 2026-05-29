@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect } from "react"
-import { useBookStore } from "@/lib/store"
+import { useQuery } from "@tanstack/react-query"
+import { createClient } from "@/lib/supabase/client"
+import { useBooks } from "@/lib/hooks/use-books"
+
+const supabase = createClient()
 
 interface DayGroup {
   dateKey: string
@@ -17,7 +21,7 @@ interface DayGroup {
 
 const WEEKDAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
-function toLocalDateKey(ts: number): string {
+function toLocalDateKey(ts: string): string {
   const d = new Date(ts)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
@@ -60,7 +64,26 @@ export default function TimelinePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const store = useBookStore()
+
+  const { data: books } = useBooks()
+
+  const { data: allTocItems } = useQuery({
+    queryKey: ["toc-items", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const { data: allStatuses } = useQuery({
+    queryKey: ["chapter-statuses", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("chapter_statuses").select("*")
+      if (error) throw error
+      return data ?? []
+    },
+  })
 
   useEffect(() => {
     if (!searchOpen) return
@@ -74,29 +97,33 @@ export default function TimelinePage() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [searchOpen])
 
-  const bookMap = useMemo(() => new Map(store.books.map(b => [b.id, b])), [store.books])
-  const tocItemMap = useMemo(() => new Map(store.tocItems.map(t => [t.id, t])), [store.tocItems])
+  const bookMap = useMemo(() => new Map((books ?? []).map(b => [b.id, b])), [books])
+  const tocItemMap = useMemo(() => new Map((allTocItems ?? []).map((t: any) => [t.id, t])), [allTocItems])
 
   const { groups, booksWithRecords } = useMemo(() => {
-    const completedStatuses = store.chapterStatuses.filter(
-      s => s.checked && s.checkedAt !== null
+    if (!books || !allTocItems || !allStatuses) {
+      return { groups: [], booksWithRecords: [] }
+    }
+
+    const completedStatuses = (allStatuses as any[]).filter(
+      (s: any) => s.checked && s.checked_at !== null
     )
 
     const completedBookIds = new Set<string>()
     const dateMap = new Map<string, DayGroup>()
 
     for (const status of completedStatuses) {
-      const tocItem = tocItemMap.get(status.tocItemId)
+      const tocItem = tocItemMap.get(status.toc_item_id)
       if (!tocItem) continue
 
-      const book = bookMap.get(tocItem.bookId)
+      const book = bookMap.get(tocItem.book_id)
       if (!book) continue
 
-      completedBookIds.add(tocItem.bookId)
+      completedBookIds.add(tocItem.book_id)
 
-      if (selectedBookId !== "all" && tocItem.bookId !== selectedBookId) continue
+      if (selectedBookId !== "all" && tocItem.book_id !== selectedBookId) continue
 
-      const dateKey = toLocalDateKey(status.checkedAt!)
+      const dateKey = toLocalDateKey(status.checked_at!)
 
       if (!dateMap.has(dateKey)) {
         const { month, day, weekday } = formatDateLabel(dateKey)
@@ -110,10 +137,10 @@ export default function TimelinePage() {
       }
 
       const group = dateMap.get(dateKey)!
-      if (!group.chaptersByBook.has(tocItem.bookId)) {
-        group.chaptersByBook.set(tocItem.bookId, [])
+      if (!group.chaptersByBook.has(tocItem.book_id)) {
+        group.chaptersByBook.set(tocItem.book_id, [])
       }
-      group.chaptersByBook.get(tocItem.bookId)!.push({
+      group.chaptersByBook.get(tocItem.book_id)!.push({
         bookId: book.id,
         tocItemId: tocItem.id,
         chapterTitle: tocItem.title,
@@ -122,10 +149,10 @@ export default function TimelinePage() {
     }
 
     const groups = [...dateMap.values()].sort((a, b) => b.dateKey.localeCompare(a.dateKey))
-    const booksWithRecords = store.books.filter(book => completedBookIds.has(book.id))
+    const booksWithRecords = (books as any[]).filter((book: any) => completedBookIds.has(book.id))
 
     return { groups, booksWithRecords }
-  }, [store.chapterStatuses, store.tocItems, store.books, selectedBookId, tocItemMap, bookMap])
+  }, [allStatuses, allTocItems, books, selectedBookId, tocItemMap, bookMap])
 
   const selectedBookTitle = selectedBookId === "all"
     ? "全部书籍"
@@ -134,7 +161,7 @@ export default function TimelinePage() {
   const filteredBooks = useMemo(() => {
     if (!searchQuery.trim()) return booksWithRecords
     const q = searchQuery.toLowerCase()
-    return booksWithRecords.filter(b => b.title.toLowerCase().includes(q))
+    return booksWithRecords.filter((b: any) => b.title.toLowerCase().includes(q))
   }, [booksWithRecords, searchQuery])
 
   return (
@@ -159,7 +186,7 @@ export default function TimelinePage() {
               >
                 全部书籍
               </button>
-              {filteredBooks.map(book => (
+              {filteredBooks.map((book: any) => (
                 <button
                   key={book.id}
                   onClick={() => { setSelectedBookId(book.id); setSearchOpen(false); setSearchQuery("") }}
@@ -207,9 +234,9 @@ export default function TimelinePage() {
                     <div key={bookId} className="mb-3 last:mb-0">
                       {/* Book row */}
                       <div className="flex items-center gap-2 mb-1">
-                        <CoverThumb coverUrl={book?.coverUrl} title={book?.title ?? ""} />
+                        <CoverThumb coverUrl={(book as any)?.cover_url} title={(book as any)?.title ?? ""} />
                         <span className="text-[13px] font-medium text-[rgba(0,0,0,0.85)]">
-                          {book?.title ?? "未知"}
+                          {(book as any)?.title ?? "未知"}
                         </span>
                       </div>
 
