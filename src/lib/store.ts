@@ -1,8 +1,5 @@
 import { create } from 'zustand'
 
-interface UIState {
-  // Add UI-only state here as needed
-  // For now, keep it minimal
-}
+type UIState = Record<string, never>
 
 export const useUIStore = create<UIState>(() => ({}))

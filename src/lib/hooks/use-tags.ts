@@ -26,7 +26,7 @@ export function useBookTags(bookId: string) {
         .select('tag_id, tags(*)')
         .eq('book_id', bookId)
       if (error) throw error
-      return data?.map(bt => bt.tags) || []
+      return (data?.map(bt => Array.isArray(bt.tags) ? bt.tags[0] : bt.tags) || []).filter(Boolean)
     },
     enabled: !!bookId,
   })

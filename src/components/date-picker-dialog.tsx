@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
@@ -27,13 +27,32 @@ export function DatePickerDialog({
   initialDate,
   onConfirm,
 }: DatePickerDialogProps) {
-  const [date, setDate] = useState(initialDate ?? formatToday())
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent key={String(open)} className="sm:max-w-xs">
+        <DatePickerContent
+          title={title}
+          initialDate={initialDate}
+          onConfirm={onConfirm}
+          onOpenChange={onOpenChange}
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}
 
-  useEffect(() => {
-    if (open) {
-      setDate(initialDate ?? formatToday())
-    }
-  }, [open, initialDate])
+function DatePickerContent({
+  title,
+  initialDate,
+  onConfirm,
+  onOpenChange,
+}: {
+  title: string
+  initialDate?: string
+  onConfirm: (date: string) => void
+  onOpenChange: (open: boolean) => void
+}) {
+  const [date, setDate] = useState(initialDate ?? formatToday())
 
   const handleConfirm = useCallback(() => {
     onConfirm(date)
@@ -66,44 +85,42 @@ export function DatePickerDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xs" onKeyDown={handleKeyDown}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-3 py-2">
-          <div className="flex gap-2">
-            {quickDates.map(q => (
-              <button
-                key={q.label}
-                type="button"
-                onClick={() => setQuickDate(q.offset)}
-                className="rounded-full bg-[rgba(0,0,0,0.05)] px-3 py-1 text-xs font-medium text-[#615d59] hover:bg-[#0075de] hover:text-white transition-colors"
-              >
-                {q.label}
-              </button>
-            ))}
-          </div>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full rounded-lg border border-[rgba(0,0,0,0.15)] bg-white px-3 py-2 text-sm text-[rgba(0,0,0,0.95)] outline-none focus:border-[#0075de] focus:ring-1 focus:ring-[#0075de]"
-            autoFocus
-          />
+    <div onKeyDown={handleKeyDown}>
+      <DialogHeader>
+        <DialogTitle>{title}</DialogTitle>
+      </DialogHeader>
+      <div className="flex flex-col gap-3 py-2">
+        <div className="flex gap-2">
+          {quickDates.map(q => (
+            <button
+              key={q.label}
+              type="button"
+              onClick={() => setQuickDate(q.offset)}
+              className="rounded-full bg-[rgba(0,0,0,0.05)] px-3 py-1 text-xs font-medium text-[#615d59] hover:bg-[#0075de] hover:text-white transition-colors"
+            >
+              {q.label}
+            </button>
+          ))}
         </div>
-        <div className="flex justify-end gap-2 border-t border-[rgba(0,0,0,0.1)] pt-3">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            取消
-          </Button>
-          <Button
-            className="bg-[#0075de] hover:bg-[#005bab]"
-            onClick={handleConfirm}
-          >
-            确认
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <input
+          type="date"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          className="w-full rounded-lg border border-[rgba(0,0,0,0.15)] bg-white px-3 py-2 text-sm text-[rgba(0,0,0,0.95)] outline-none focus:border-[#0075de] focus:ring-1 focus:ring-[#0075de]"
+          autoFocus
+        />
+      </div>
+      <div className="flex justify-end gap-2 border-t border-[rgba(0,0,0,0.1)] pt-3">
+        <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          取消
+        </Button>
+        <Button
+          className="bg-[#0075de] hover:bg-[#005bab]"
+          onClick={handleConfirm}
+        >
+          确认
+        </Button>
+      </div>
+    </div>
   )
 }

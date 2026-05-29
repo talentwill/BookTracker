@@ -3,7 +3,9 @@
 import { useState, useMemo, useRef, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import type { TocItem, ChapterStatus } from "@/lib/types"
 import { useBooks } from "@/lib/hooks/use-books"
+import { getCoverUrl } from "@/lib/supabase/storage"
 
 const supabase = createClient()
 
@@ -49,7 +51,7 @@ function CoverThumb({ coverUrl, title }: { coverUrl?: string; title: string }) {
   return (
     <div className="w-6 h-8 rounded-[3px] bg-[#fef3e0] shrink-0 overflow-hidden">
       <img
-        src={coverUrl}
+        src={coverUrl.startsWith('http') ? coverUrl : getCoverUrl(coverUrl)}
         alt={title}
         className="w-full h-full object-cover"
         onError={() => setImgError(true)}
@@ -67,21 +69,21 @@ export default function TimelinePage() {
 
   const { data: books } = useBooks()
 
-  const { data: allTocItems } = useQuery({
+  const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as TocItem[]
     },
   })
 
-  const { data: allStatuses } = useQuery({
+  const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ChapterStatus[]
     },
   })
 
@@ -98,15 +100,15 @@ export default function TimelinePage() {
   }, [searchOpen])
 
   const bookMap = useMemo(() => new Map((books ?? []).map(b => [b.id, b])), [books])
-  const tocItemMap = useMemo(() => new Map((allTocItems ?? []).map((t: any) => [t.id, t])), [allTocItems])
+  const tocItemMap = useMemo(() => new Map((allTocItems ?? []).map((t) => [t.id, t])), [allTocItems])
 
   const { groups, booksWithRecords } = useMemo(() => {
     if (!books || !allTocItems || !allStatuses) {
       return { groups: [], booksWithRecords: [] }
     }
 
-    const completedStatuses = (allStatuses as any[]).filter(
-      (s: any) => s.checked && s.checked_at !== null
+    const completedStatuses = allStatuses.filter(
+      (s) => s.checked && s.checked_at !== null
     )
 
     const completedBookIds = new Set<string>()
@@ -149,7 +151,7 @@ export default function TimelinePage() {
     }
 
     const groups = [...dateMap.values()].sort((a, b) => b.dateKey.localeCompare(a.dateKey))
-    const booksWithRecords = (books as any[]).filter((book: any) => completedBookIds.has(book.id))
+    const booksWithRecords = books.filter((book) => completedBookIds.has(book.id))
 
     return { groups, booksWithRecords }
   }, [allStatuses, allTocItems, books, selectedBookId, tocItemMap, bookMap])
@@ -161,7 +163,7 @@ export default function TimelinePage() {
   const filteredBooks = useMemo(() => {
     if (!searchQuery.trim()) return booksWithRecords
     const q = searchQuery.toLowerCase()
-    return booksWithRecords.filter((b: any) => b.title.toLowerCase().includes(q))
+    return booksWithRecords.filter((b) => b.title.toLowerCase().includes(q))
   }, [booksWithRecords, searchQuery])
 
   return (
@@ -186,7 +188,7 @@ export default function TimelinePage() {
               >
                 全部书籍
               </button>
-              {filteredBooks.map((book: any) => (
+              {filteredBooks.map((book) => (
                 <button
                   key={book.id}
                   onClick={() => { setSelectedBookId(book.id); setSearchOpen(false); setSearchQuery("") }}
@@ -234,9 +236,9 @@ export default function TimelinePage() {
                     <div key={bookId} className="mb-3 last:mb-0">
                       {/* Book row */}
                       <div className="flex items-center gap-2 mb-1">
-                        <CoverThumb coverUrl={(book as any)?.cover_url} title={(book as any)?.title ?? ""} />
+                        <CoverThumb coverUrl={book?.cover_url} title={book?.title ?? ""} />
                         <span className="text-[13px] font-medium text-[rgba(0,0,0,0.85)]">
-                          {(book as any)?.title ?? "未知"}
+                          {book?.title ?? "未知"}
                         </span>
                       </div>
 

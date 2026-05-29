@@ -8,6 +8,7 @@ import { useTocItems } from "@/lib/hooks/use-toc-items"
 import { useReadingRounds, useStartNewRound } from "@/lib/hooks/use-reading-rounds"
 import { useChapterStatuses, useToggleChapter, useScheduleChapter } from "@/lib/hooks/use-chapter-statuses"
 import { useBookTags, useAddBookTag, useRemoveBookTag } from "@/lib/hooks/use-tags"
+import { getCoverUrl } from "@/lib/supabase/storage"
 import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
 import { NewRoundDialog } from "@/components/new-round-dialog"
@@ -169,7 +170,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               <div className="absolute inset-0 flex items-center justify-center text-3xl">📘</div>
               {book.cover_url && (
                 <img
-                  src={book.cover_url}
+                  src={book.cover_url.startsWith('http') ? book.cover_url : getCoverUrl(book.cover_url)}
                   alt={book.title}
                   className="relative w-full h-full object-cover"
                   onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
@@ -234,7 +235,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {/* Tags — pushed to bottom */}
             <div className="mt-auto flex items-center gap-1.5 flex-wrap">
               <span className="text-[13px] text-[#9b958e] min-w-[28px]">标签</span>
-              {bookTags.map((tag: any) => (
+              {bookTags.map((tag) => (
                 <span key={tag.id} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[13px] text-[#615d59]">
                   {tag.name}
                   <button
@@ -367,16 +368,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           onSchedule={(tocItemId, date) => scheduleChapter.mutate({ tocItemId, roundId, date })}
           onToggle={(tocItemId, checkedAt) => {
             if (checkedAt) {
-              // Check: set checked=true and update checked_at
-              toggleChapter.mutate({ tocItemId, roundId, checked: true })
+              toggleChapter.mutate({ tocItemId, roundId, checked: true, checkedAt: new Date(checkedAt).toISOString() })
             } else {
-              // Uncheck: set checked=false
               toggleChapter.mutate({ tocItemId, roundId, checked: false })
             }
           }}
           onUpdateCheckedAt={(tocItemId, checkedAt) => {
-            // Update checked_at timestamp (toggle ensures it's checked)
-            toggleChapter.mutate({ tocItemId, roundId, checked: true })
+            toggleChapter.mutate({ tocItemId, roundId, checked: true, checkedAt: new Date(checkedAt).toISOString() })
           }}
           rightAction={
             <Link

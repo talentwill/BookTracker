@@ -43,12 +43,12 @@ export function useAllChapterStatuses(bookId: string) {
 export function useToggleChapter() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ tocItemId, roundId, checked }: { tocItemId: string; roundId: string; checked: boolean }) => {
+    mutationFn: async ({ tocItemId, roundId, checked, checkedAt }: { tocItemId: string; roundId: string; checked: boolean; checkedAt?: string }) => {
       const { error } = await supabase
         .from('chapter_statuses')
         .update({
           checked,
-          checked_at: checked ? new Date().toISOString() : null,
+          checked_at: checked ? (checkedAt ?? new Date().toISOString()) : null,
         })
         .match({ toc_item_id: tocItemId, round_id: roundId })
       if (error) throw error

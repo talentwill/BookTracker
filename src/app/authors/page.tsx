@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import type { ReadingRound, TocItem, ChapterStatus } from "@/lib/types"
 import { useAuthors } from "@/lib/hooks/use-authors"
 import { useBooks } from "@/lib/hooks/use-books"
 import { AuthorCard } from "@/components/author-card"
@@ -13,30 +14,30 @@ export default function AuthorsPage() {
   const { data: authors } = useAuthors()
   const { data: books } = useBooks()
 
-  const { data: allRounds } = useQuery({
+  const { data: allRounds } = useQuery<ReadingRound[]>({
     queryKey: ["reading-rounds", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("reading_rounds").select("*")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ReadingRound[]
     },
   })
 
-  const { data: allTocItems } = useQuery({
+  const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as TocItem[]
     },
   })
 
-  const { data: allStatuses } = useQuery({
+  const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ChapterStatus[]
     },
   })
 
@@ -48,10 +49,10 @@ export default function AuthorsPage() {
         .filter(b => b.author_id === author.id)
         .map(book => {
           const activeRound = allRounds
-            .filter((r: any) => r.book_id === book.id && r.status === "active")
-            .sort((a: any, b: any) => b.round_number - a.round_number)[0]
-          const items = allTocItems.filter((t: any) => t.book_id === book.id)
-          const statuses = allStatuses.filter((s: any) => s.round_id === (activeRound?.id ?? ""))
+            .filter((r) => r.book_id === book.id && r.status === "active")
+            .sort((a, b) => b.round_number - a.round_number)[0]
+          const items = allTocItems.filter((t) => t.book_id === book.id)
+          const statuses = allStatuses.filter((s) => s.round_id === (activeRound?.id ?? ""))
           return {
             book,
             round: activeRound,

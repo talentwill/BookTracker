@@ -12,7 +12,8 @@ export function formatDate(date: string | number | Date): string {
 }
 
 export function formatToday(): string {
-  return new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
 }
 
 export function buildTree(items: TocItem[]): Map<string | null, TocItem[]> {
@@ -36,8 +37,9 @@ export function getChapterStatus(
   if (checked) return "done"
   if (!scheduledDate) return "unscheduled"
   if (scheduledDate === today) return "today"
-  const tomorrow = new Date(today)
+  const tomorrow = new Date(today + "T00:00:00")
   tomorrow.setDate(tomorrow.getDate() + 1)
-  if (scheduledDate === tomorrow.toISOString().slice(0, 10)) return "tomorrow"
+  const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`
+  if (scheduledDate === tomorrowStr) return "tomorrow"
   return "scheduled"
 }

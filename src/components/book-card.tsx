@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { getCoverUrl } from "@/lib/supabase/storage"
+import { formatToday } from "@/lib/utils"
 import type { Book, Author, ReadingRound, ChapterStatus, TocItem } from "@/lib/types"
 
 interface BookCardProps {
@@ -27,13 +29,13 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
 
   const todayScheduled = statuses.filter(s => {
     if (s.checked) return false
-    const today = new Date().toISOString().slice(0, 10)
-    return s.scheduled_date === today
+    return s.scheduled_date === formatToday()
   }).length
 
-  const tomorrow = new Date()
+  const today = formatToday()
+  const tomorrow = new Date(today + "T00:00:00")
   tomorrow.setDate(tomorrow.getDate() + 1)
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10)
+  const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`
   const tomorrowScheduled = statuses.filter(s => {
     if (s.checked) return false
     return s.scheduled_date === tomorrowStr
@@ -50,7 +52,7 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
         >
           {book.cover_url ? (
             <img
-              src={book.cover_url}
+              src={book.cover_url.startsWith('http') ? book.cover_url : getCoverUrl(book.cover_url)}
               alt={book.title}
               className="w-full h-full object-cover"
               onError={e => { (e.target as HTMLImageElement).style.display = "none" }}

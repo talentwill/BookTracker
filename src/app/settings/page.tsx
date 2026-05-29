@@ -1,23 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useProfile, useUpdateProfile } from "@/lib/hooks/use-profile"
 
 export default function SettingsPage() {
   const { data: profile } = useProfile()
+  return <SettingsForm key={profile?.id ?? "init"} profile={profile} />
+}
+
+function SettingsForm({ profile }: { profile: ReturnType<typeof useProfile>["data"] }) {
   const updateProfile = useUpdateProfile()
   const [saved, setSaved] = useState(false)
-  const [apiKey, setApiKey] = useState("")
-  const [baseUrl, setBaseUrl] = useState("")
-  const [model, setModel] = useState("")
-
-  useEffect(() => {
-    if (profile) {
-      setApiKey(profile.ai_api_key ?? "")
-      setBaseUrl(profile.ai_base_url ?? "")
-      setModel(profile.ai_model ?? "")
-    }
-  }, [profile])
+  const [apiKey, setApiKey] = useState(profile?.ai_api_key ?? "")
+  const [baseUrl, setBaseUrl] = useState(profile?.ai_base_url ?? "")
+  const [model, setModel] = useState(profile?.ai_model ?? "")
 
   function handleSave() {
     updateProfile.mutate(

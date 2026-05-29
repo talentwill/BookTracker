@@ -68,12 +68,6 @@ export function Navbar() {
           >
             ⚙️
           </Link>
-          <Link
-            href="/books/add"
-            className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md transition-colors"
-          >
-            + 添加书籍
-          </Link>
           {user ? (
             <>
               <span className="text-[13px] text-[#615d59] max-w-[160px] truncate">

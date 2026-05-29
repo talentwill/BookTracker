@@ -3,11 +3,13 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import type { ReadingRound, TocItem, ChapterStatus, Author } from "@/lib/types"
 import { useBooks } from "@/lib/hooks/use-books"
 import { useToggleChapter, useScheduleChapter } from "@/lib/hooks/use-chapter-statuses"
 import { StatCard } from "@/components/stat-card"
 import { TodayReadingList } from "@/components/today-reading-list"
 import { BookCard } from "@/components/book-card"
+import { formatToday } from "@/lib/utils"
 import Link from "next/link"
 
 const supabase = createClient()
@@ -16,39 +18,39 @@ export default function HomePage() {
   const { data: books } = useBooks()
   const toggleChapter = useToggleChapter()
   const scheduleChapter = useScheduleChapter()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = formatToday()
 
-  const { data: allRounds } = useQuery({
+  const { data: allRounds } = useQuery<ReadingRound[]>({
     queryKey: ["reading-rounds", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("reading_rounds").select("*")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ReadingRound[]
     },
   })
 
-  const { data: allTocItems } = useQuery({
+  const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as TocItem[]
     },
   })
 
-  const { data: allStatuses } = useQuery({
+  const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as ChapterStatus[]
     },
   })
 
   // Extract unique authors from books' joined relation
   const authors = useMemo(() => {
     if (!books) return []
-    const map = new Map<string, any>()
+    const map = new Map<string, Author>()
     for (const b of books) {
       if (b.authors) map.set(b.authors.id, b.authors)
     }
@@ -58,17 +60,17 @@ export default function HomePage() {
   // Compute today's reading items
   const todayItems = useMemo(() => {
     if (!books || !allRounds || !allTocItems || !allStatuses) return []
-    const items: Array<{ book: any; tocItem: any; status: any }> = []
+    const items: Array<{ book: typeof books[number]; tocItem: TocItem; status: ChapterStatus }> = []
     for (const book of books) {
       const activeRound = allRounds
-        .filter((r: any) => r.book_id === book.id && r.status === "active")
-        .sort((a: any, b: any) => b.round_number - a.round_number)[0]
+        .filter((r) => r.book_id === book.id && r.status === "active")
+        .sort((a, b) => b.round_number - a.round_number)[0]
       if (!activeRound) continue
       const statuses = allStatuses.filter(
-        (s: any) => s.round_id === activeRound.id && s.scheduled_date === today
+        (s) => s.round_id === activeRound.id && s.scheduled_date === today
       )
       for (const status of statuses) {
-        const tocItem = allTocItems.find((t: any) => t.id === status.toc_item_id)
+        const tocItem = allTocItems.find((t) => t.id === status.toc_item_id)
         if (tocItem) items.push({ book, tocItem, status })
       }
     }
@@ -85,13 +87,13 @@ export default function HomePage() {
       .map(book => {
         const author = book.authors
         const activeRound = allRounds
-          .filter((r: any) => r.book_id === book.id && r.status === "active")
-          .sort((a: any, b: any) => b.round_number - a.round_number)[0]
-        const items = allTocItems.filter((t: any) => t.book_id === book.id)
+          .filter((r) => r.book_id === book.id && r.status === "active")
+          .sort((a, b) => b.round_number - a.round_number)[0]
+        const items = allTocItems.filter((t) => t.book_id === book.id)
         const statuses = allStatuses.filter(
-          (s: any) => s.round_id === (activeRound?.id ?? "")
+          (s) => s.round_id === (activeRound?.id ?? "")
         )
-        const checkedCount = statuses.filter((s: any) => s.checked).length
+        const checkedCount = statuses.filter((s) => s.checked).length
         return {
           book,
           author,
@@ -114,10 +116,18 @@ export default function HomePage() {
   const streak = calculateStreak(allStatuses ?? [])
 
   return (
-    <div className="px-6 py-6">
-      <div className="mb-5">
+    <div>
+      <div className="flex items-center justify-between px-6" style={{ height: '49px' }}>
         <p className="text-sm text-[#615d59]">{dateStr}</p>
+        <Link
+          href="/books/add"
+          className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md transition-colors"
+        >
+          + 添加书籍
+        </Link>
       </div>
+
+      <div className="px-6 pb-6">
 
       <div className="mb-6 flex gap-3">
         <StatCard label="今日待读" value={todayPending} sub="章节数" variant="blue" />
@@ -134,7 +144,7 @@ export default function HomePage() {
             readingBooks.reduce(
               (s, b) =>
                 s +
-                (b.statuses.filter((st: any) => st.checked).length /
+                (b.statuses.filter((st) => st.checked).length /
                   Math.max(b.items.length, 1)) *
                   100,
               0
@@ -154,7 +164,7 @@ export default function HomePage() {
           authors={authors}
           allTocItems={allTocItems ?? []}
           onToggle={(tocItemId, roundId, checkedAt) => {
-            toggleChapter.mutate({ tocItemId, roundId, checked: checkedAt !== undefined })
+            toggleChapter.mutate({ tocItemId, roundId, checked: checkedAt !== undefined, checkedAt: checkedAt ? new Date(checkedAt).toISOString() : undefined })
           }}
           onSchedule={(tocItemId, roundId, date) => {
             scheduleChapter.mutate({ tocItemId, roundId, date })
@@ -185,6 +195,7 @@ export default function HomePage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -195,13 +206,14 @@ function calculateStreak(
   const checkedDates = new Set<string>()
   for (const s of statuses) {
     if (s.checked_at) {
-      checkedDates.add(new Date(s.checked_at).toISOString().slice(0, 10))
+      const d = new Date(s.checked_at)
+      checkedDates.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)
     }
   }
   let streak = 0
   const d = new Date()
   while (true) {
-    const key = d.toISOString().slice(0, 10)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
     if (checkedDates.has(key)) {
       streak++
       d.setDate(d.getDate() - 1)

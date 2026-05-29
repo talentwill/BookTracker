@@ -50,7 +50,10 @@ export async function uploadCoverFromUrl(
     body: JSON.stringify({ imageUrl, sourceKey }),
   })
 
-  if (!response.ok) throw new Error('Failed to upload cover')
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: 'Unknown error' }))
+    throw new Error(`Cover upload failed: ${err.error || response.status}`)
+  }
   const { path } = await response.json()
   return path
 }

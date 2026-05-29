@@ -94,12 +94,12 @@ function Row({
   onUpdateCheckedAt?: (id: string, checkedAt: number) => void
 }) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const tomorrow = new Date(today)
+  const tomorrow = new Date(today + "T00:00:00")
   tomorrow.setDate(tomorrow.getDate() + 1)
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10)
-  const nextWeek = new Date(today)
+  const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`
+  const nextWeek = new Date(today + "T00:00:00")
   nextWeek.setDate(nextWeek.getDate() + 7)
-  const nextWeekStr = nextWeek.toISOString().slice(0, 10)
+  const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth() + 1).padStart(2, "0")}-${String(nextWeek.getDate()).padStart(2, "0")}`
 
   const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
     done: { bg: "bg-[#e6f9ee]", text: "text-[#1aae39]", label: "已完成" },
@@ -122,7 +122,7 @@ function Row({
   }
 
   const checkedDateStr = isDone && status?.checked_at
-    ? new Date(status.checked_at).toISOString().slice(0, 10)
+    ? (() => { const d = new Date(status.checked_at); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` })()
     : null
 
   return (
