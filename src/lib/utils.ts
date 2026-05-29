@@ -6,8 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatDate(timestamp: number): string {
-  return new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit" }).format(new Date(timestamp))
+export function formatDate(date: string | number | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : new Date(date)
+  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
 }
 
 export function formatToday(): string {

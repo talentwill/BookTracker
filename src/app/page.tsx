@@ -1,43 +1,126 @@
 "use client"
 
-import { useBookStore } from "@/lib/store"
+import { useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { createClient } from "@/lib/supabase/client"
+import { useBooks } from "@/lib/hooks/use-books"
+import { useToggleChapter, useScheduleChapter } from "@/lib/hooks/use-chapter-statuses"
 import { StatCard } from "@/components/stat-card"
 import { TodayReadingList } from "@/components/today-reading-list"
 import { BookCard } from "@/components/book-card"
 import Link from "next/link"
 
+const supabase = createClient()
+
 export default function HomePage() {
-  const store = useBookStore()
+  const { data: books } = useBooks()
+  const toggleChapter = useToggleChapter()
+  const scheduleChapter = useScheduleChapter()
   const today = new Date().toISOString().slice(0, 10)
 
-  const todayItems: Array<{ book: typeof store.books[0]; tocItem: typeof store.tocItems[0]; status: typeof store.chapterStatuses[0] }> = []
-  for (const book of store.books) {
-    const round = store.getActiveRound(book.id)
-    if (!round) continue
-    const statuses = store.chapterStatuses.filter(c => c.roundId === round.id && c.scheduledDate === today)
-    for (const status of statuses) {
-      const tocItem = store.tocItems.find(t => t.id === status.tocItemId)
-      if (tocItem) todayItems.push({ book, tocItem, status })
+  const { data: allRounds } = useQuery({
+    queryKey: ["reading-rounds", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("reading_rounds").select("*")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const { data: allTocItems } = useQuery({
+    queryKey: ["toc-items", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const { data: allStatuses } = useQuery({
+    queryKey: ["chapter-statuses", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("chapter_statuses").select("*")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  // Extract unique authors from books' joined relation
+  const authors = useMemo(() => {
+    if (!books) return []
+    const map = new Map<string, any>()
+    for (const b of books) {
+      if (b.authors) map.set(b.authors.id, b.authors)
     }
-  }
+    return [...map.values()].map(mapAuthor)
+  }, [books])
+
+  // Compute today's reading items
+  const todayItems = useMemo(() => {
+    if (!books || !allRounds || !allTocItems || !allStatuses) return []
+    const items: Array<{ book: any; tocItem: any; status: any }> = []
+    for (const book of books) {
+      const activeRound = allRounds
+        .filter((r: any) => r.book_id === book.id && r.status === "active")
+        .sort((a: any, b: any) => b.round_number - a.round_number)[0]
+      if (!activeRound) continue
+      const statuses = allStatuses.filter(
+        (s: any) => s.round_id === activeRound.id && s.scheduled_date === today
+      )
+      for (const status of statuses) {
+        const tocItem = allTocItems.find((t: any) => t.id === status.toc_item_id)
+        if (tocItem) items.push({ book, tocItem, status })
+      }
+    }
+    return items
+  }, [books, allRounds, allTocItems, allStatuses, today])
 
   const todayDone = todayItems.filter(i => i.status.checked).length
   const todayPending = todayItems.filter(i => !i.status.checked).length
 
-  const readingBooks = store.books
-    .map(book => {
-      const author = store.authors.find(a => a.id === book.authorId)
-      const round = store.getActiveRound(book.id)
-      const items = store.tocItems.filter(t => t.bookId === book.id)
-      const statuses = store.chapterStatuses.filter(c => c.roundId === (round?.id ?? ""))
-      const checkedCount = statuses.filter(s => s.checked).length
-      return { book, author, round, items, statuses, isComplete: items.length > 0 && checkedCount === items.length }
-    })
-    .filter(b => !b.isComplete)
+  // Compute reading books (not yet complete)
+  const readingBooks = useMemo(() => {
+    if (!books || !allRounds || !allTocItems || !allStatuses) return []
+    return books
+      .map(book => {
+        const author = book.authors
+        const activeRound = allRounds
+          .filter((r: any) => r.book_id === book.id && r.status === "active")
+          .sort((a: any, b: any) => b.round_number - a.round_number)[0]
+        const items = allTocItems.filter((t: any) => t.book_id === book.id)
+        const statuses = allStatuses.filter(
+          (s: any) => s.round_id === (activeRound?.id ?? "")
+        )
+        const checkedCount = statuses.filter((s: any) => s.checked).length
+        return {
+          book,
+          author,
+          round: activeRound,
+          items,
+          statuses,
+          isComplete: items.length > 0 && checkedCount === items.length,
+        }
+      })
+      .filter(b => !b.isComplete)
+  }, [books, allRounds, allTocItems, allStatuses])
 
-  const dateStr = new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })
+  const dateStr = new Date().toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  })
 
-  const streak = calculateStreak(store.chapterStatuses)
+  const streak = calculateStreak(allStatuses ?? [])
+
+  // Map Supabase snake_case data to camelCase for existing components
+  const mappedTodayItems = todayItems.map(i => ({
+    book: mapBook(i.book),
+    tocItem: mapTocItem(i.tocItem),
+    status: mapChapterStatus(i.status),
+  }))
+
+  const mappedAllTocItems = (allTocItems ?? []).map(mapTocItem)
 
   return (
     <div className="px-6 py-6">
@@ -47,11 +130,25 @@ export default function HomePage() {
 
       <div className="mb-6 flex gap-3">
         <StatCard label="今日待读" value={todayPending} sub="章节数" variant="blue" />
-        <StatCard label="今日已完成" value={todayDone} sub={todayDone > 0 ? "继续加油！" : "开始今天的阅读吧"} variant="green" />
+        <StatCard
+          label="今日已完成"
+          value={todayDone}
+          sub={todayDone > 0 ? "继续加油！" : "开始今天的阅读吧"}
+          variant="green"
+        />
         <StatCard
           label="在读书籍"
           value={readingBooks.length}
-          sub={`总进度 ${Math.round(readingBooks.reduce((s, b) => s + (b.statuses.filter(st => st.checked).length / Math.max(b.items.length, 1)) * 100, 0) / Math.max(readingBooks.length, 1))}%`}
+          sub={`总进度 ${Math.round(
+            readingBooks.reduce(
+              (s, b) =>
+                s +
+                (b.statuses.filter((st: any) => st.checked).length /
+                  Math.max(b.items.length, 1)) *
+                  100,
+              0
+            ) / Math.max(readingBooks.length, 1)
+          )}%`}
           variant="gray"
         />
         <StatCard label="连续阅读" value={streak} sub="天 🔥" variant="gray" />
@@ -62,11 +159,15 @@ export default function HomePage() {
           <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">今日阅读清单</h2>
         </div>
         <TodayReadingList
-          items={todayItems}
-          authors={store.authors}
-          allTocItems={store.tocItems}
-          onToggle={(tocItemId, roundId, checkedAt) => store.toggleChapter(tocItemId, roundId, checkedAt)}
-          onSchedule={(tocItemId, roundId, date) => store.scheduleChapter(tocItemId, roundId, date)}
+          items={mappedTodayItems}
+          authors={authors}
+          allTocItems={mappedAllTocItems}
+          onToggle={(tocItemId, roundId, checkedAt) => {
+            toggleChapter.mutate({ tocItemId, roundId, checked: checkedAt !== undefined })
+          }}
+          onSchedule={(tocItemId, roundId, date) => {
+            scheduleChapter.mutate({ tocItemId, roundId, date })
+          }}
         />
       </div>
 
@@ -74,12 +175,20 @@ export default function HomePage() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">最近在读</h2>
-            <Link href="/bookshelf" className="text-xs font-medium text-[#097fe8] hover:underline">查看书架 →</Link>
+            <Link href="/bookshelf" className="text-xs font-medium text-[#097fe8] hover:underline">
+              查看书架 →
+            </Link>
           </div>
           <div className="flex gap-3.5 overflow-x-auto pb-2">
             {readingBooks.slice(0, 5).map(b => (
               <div key={b.book.id} className="min-w-[180px]">
-                <BookCard book={b.book} author={b.author} round={b.round} items={b.items} statuses={b.statuses} />
+                <BookCard
+                  book={mapBook(b.book)}
+                  author={b.author ? mapAuthor(b.author) : undefined}
+                  round={b.round ? mapRound(b.round) : undefined}
+                  items={b.items.map(mapTocItem)}
+                  statuses={b.statuses.map(mapChapterStatus)}
+                />
               </div>
             ))}
           </div>
@@ -89,11 +198,74 @@ export default function HomePage() {
   )
 }
 
-function calculateStreak(statuses: Array<{ checked: boolean; checkedAt: number | null }>): number {
+// --- Mapping helpers: Supabase snake_case -> component camelCase ---
+
+function mapBook(book: any) {
+  return {
+    id: book.id,
+    title: book.title,
+    authorId: book.author_id,
+    tocText: book.toc_text ?? "",
+    createdAt: book.created_at,
+    publisher: book.publisher,
+    publishDate: book.publish_date,
+    isbn: book.isbn,
+    coverUrl: book.cover_url,
+    doubanRating: book.douban_rating,
+    doubanUrl: book.douban_url,
+    readingStatus: book.reading_status,
+    startedReadingAt: book.started_reading_at,
+    finishedReadingAt: book.finished_reading_at,
+    tags: book.tags,
+  }
+}
+
+function mapAuthor(author: any) {
+  return {
+    id: author.id,
+    name: author.name,
+    note: author.note,
+    createdAt: author.created_at,
+  }
+}
+
+function mapTocItem(item: any) {
+  return {
+    id: item.id,
+    bookId: item.book_id,
+    parentId: item.parent_id,
+    title: item.title,
+    order: item.sort_order,
+  }
+}
+
+function mapChapterStatus(status: any) {
+  return {
+    tocItemId: status.toc_item_id,
+    roundId: status.round_id,
+    checked: status.checked,
+    checkedAt: status.checked_at,
+    scheduledDate: status.scheduled_date,
+  }
+}
+
+function mapRound(round: any) {
+  return {
+    id: round.id,
+    bookId: round.book_id,
+    roundNumber: round.round_number,
+    startedAt: round.started_at,
+    status: round.status,
+  }
+}
+
+function calculateStreak(
+  statuses: Array<{ checked: boolean; checked_at: string | null }>
+): number {
   const checkedDates = new Set<string>()
   for (const s of statuses) {
-    if (s.checkedAt) {
-      checkedDates.add(new Date(s.checkedAt).toISOString().slice(0, 10))
+    if (s.checked_at) {
+      checkedDates.add(new Date(s.checked_at).toISOString().slice(0, 10))
     }
   }
   let streak = 0
