@@ -3,13 +3,15 @@
 import { useState } from "react"
 import type { TocItem, ChapterStatus, ReadingRound } from "@/lib/types"
 import { formatToday, getChapterStatus } from "@/lib/utils"
+import { DatePickerDialog } from "@/components/date-picker-dialog"
 
 interface TableViewProps {
   items: TocItem[]
   statuses: Map<string, ChapterStatus>
   round: ReadingRound
   onSchedule: (tocItemId: string, date: string | null) => void
-  onToggle: (tocItemId: string) => void
+  onToggle: (tocItemId: string, checkedAt?: number) => void
+  onUpdateCheckedAt?: (tocItemId: string, checkedAt: number) => void
   rightAction?: React.ReactNode
 }
 
@@ -18,7 +20,7 @@ type Filter = "all" | "today" | "tomorrow" | "unscheduled" | "done"
 const gridClass = "grid items-center gap-2 px-3 py-2 text-[13px]"
 const gridStyle = { gridTemplateColumns: "28px 1fr 72px 80px 200px" }
 
-export function TableView({ items, statuses, round, onSchedule, onToggle, rightAction }: TableViewProps) {
+export function TableView({ items, statuses, round, onSchedule, onToggle, onUpdateCheckedAt, rightAction }: TableViewProps) {
   const [filter, setFilter] = useState<Filter>("all")
   const today = formatToday()
 
@@ -68,6 +70,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, rightA
             today={today}
             onSchedule={onSchedule}
             onToggle={onToggle}
+            onUpdateCheckedAt={onUpdateCheckedAt}
           />
         ))}
         {filteredRows.length === 0 && (
@@ -79,7 +82,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, rightA
 }
 
 function Row({
-  item, status, chapterStatus, depth, today, onSchedule, onToggle,
+  item, status, chapterStatus, depth, today, onSchedule, onToggle, onUpdateCheckedAt,
 }: {
   item: TocItem
   status: ChapterStatus | undefined
@@ -87,8 +90,10 @@ function Row({
   depth: number
   today: string
   onSchedule: (id: string, date: string | null) => void
-  onToggle: (id: string) => void
+  onToggle: (id: string, checkedAt?: number) => void
+  onUpdateCheckedAt?: (id: string, checkedAt: number) => void
 }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
   const tomorrowStr = tomorrow.toISOString().slice(0, 10)
@@ -107,40 +112,68 @@ function Row({
   const badge = statusBadge[chapterStatus]
   const isDone = chapterStatus === "done"
 
+  const handleDateConfirm = (date: string) => {
+    const timestamp = new Date(date + "T12:00:00").getTime()
+    if (isDone) {
+      onUpdateCheckedAt?.(item.id, timestamp)
+    } else {
+      onToggle(item.id, timestamp)
+    }
+  }
+
+  const checkedDateStr = isDone && status?.checkedAt
+    ? new Date(status.checkedAt).toISOString().slice(0, 10)
+    : null
+
   return (
-    <div
-      className={`${gridClass} border-b border-[rgba(0,0,0,0.05)] ${isDone ? "opacity-50" : ""}`}
-      style={gridStyle}
-    >
-      <span className={`text-center text-sm ${isDone ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
-        {isDone ? "✓" : "○"}
-      </span>
-      <span className={`truncate ${isDone ? "line-through" : ""} ${depth === 0 && !isDone ? "font-medium" : ""}`} style={{ paddingLeft: `${depth * 20}px` }}>
-        {item.title}
-      </span>
-      <span className="text-center">
-        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.bg} ${badge.text}`}>
-          {badge.label}
+    <>
+      <div
+        className={`${gridClass} border-b border-[rgba(0,0,0,0.05)] ${isDone ? "opacity-50" : ""}`}
+        style={gridStyle}
+      >
+        <span className={`text-center text-sm ${isDone ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
+          {isDone ? "✓" : "○"}
         </span>
-      </span>
-      <span className="text-center text-xs text-[#a39e98]">
-        {isDone && status?.checkedAt
-          ? new Date(status.checkedAt).toISOString().slice(0, 10)
-          : status?.scheduledDate ?? "—"}
-      </span>
-      <span className="flex justify-center gap-1">
-        {isDone ? (
-          <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]">撤销</button>
-        ) : (
-          <>
-            <button onClick={() => onSchedule(item.id, today)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">今天</button>
-            <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">明天</button>
-            <button onClick={() => onSchedule(item.id, nextWeekStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">下周</button>
-            <button onClick={() => onToggle(item.id)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">已读</button>
-          </>
-        )}
-      </span>
-    </div>
+        <span className={`truncate ${isDone ? "line-through" : ""} ${depth === 0 && !isDone ? "font-medium" : ""}`} style={{ paddingLeft: `${depth * 20}px` }}>
+          {item.title}
+        </span>
+        <span className="text-center">
+          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.bg} ${badge.text}`}>
+            {badge.label}
+          </span>
+        </span>
+        <span className="text-center text-xs text-[#a39e98]">
+          {checkedDateStr ? (
+            <button
+              onClick={() => setDialogOpen(true)}
+              className="hover:text-[#0075de] hover:underline transition-colors"
+            >
+              {checkedDateStr}
+            </button>
+          ) : (
+            status?.scheduledDate ?? "—"
+          )}
+        </span>
+        <span className="flex justify-center gap-1">
+          {isDone ? (
+            <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]">撤销</button>
+          ) : (
+            <>
+              <button onClick={() => onSchedule(item.id, today)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">今天</button>
+              <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">明天</button>
+              <button onClick={() => onSchedule(item.id, nextWeekStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">下周</button>
+              <button onClick={() => setDialogOpen(true)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">已读</button>
+            </>
+          )}
+        </span>
+      </div>
+      <DatePickerDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialDate={checkedDateStr ?? undefined}
+        onConfirm={handleDateConfirm}
+      />
+    </>
   )
 }
 

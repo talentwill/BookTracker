@@ -342,7 +342,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           statuses={statuses}
           round={selectedRound}
           onSchedule={(tocItemId, date) => store.scheduleChapter(tocItemId, roundId, date)}
-          onToggle={(tocItemId) => store.toggleChapter(tocItemId, roundId)}
+          onToggle={(tocItemId, checkedAt) => store.toggleChapter(tocItemId, roundId, checkedAt)}
+          onUpdateCheckedAt={(tocItemId, checkedAt) => store.updateCheckedAt(tocItemId, roundId, checkedAt)}
           rightAction={
             <Link
               href={`/books/${id}/edit`}

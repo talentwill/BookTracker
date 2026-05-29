@@ -65,7 +65,7 @@ export default function HomePage() {
           items={todayItems}
           authors={store.authors}
           allTocItems={store.tocItems}
-          onToggle={(tocItemId, roundId) => store.toggleChapter(tocItemId, roundId)}
+          onToggle={(tocItemId, roundId, checkedAt) => store.toggleChapter(tocItemId, roundId, checkedAt)}
           onSchedule={(tocItemId, roundId, date) => store.scheduleChapter(tocItemId, roundId, date)}
         />
       </div>

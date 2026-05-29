@@ -24,9 +24,10 @@ interface BookStore {
 
   addBook: (title: string, authorName: string, tocText: string, meta?: { publisher?: string; publishDate?: string; isbn?: string; coverUrl?: string; doubanRating?: string; doubanUrl?: string }) => string
   deleteBook: (bookId: string) => void
-  toggleChapter: (tocItemId: string, roundId: string) => void
+  toggleChapter: (tocItemId: string, roundId: string, checkedAt?: number) => void
   scheduleChapter: (tocItemId: string, roundId: string, date: string | null) => void
-  markDone: (tocItemId: string, roundId: string) => void
+  markDone: (tocItemId: string, roundId: string, checkedAt?: number) => void
+  updateCheckedAt: (tocItemId: string, roundId: string, checkedAt: number) => void
   startNewRound: (bookId: string, inheritSchedule: boolean) => string
   updateAuthor: (authorId: string, updates: { name?: string; note?: string }) => void
   getActiveRound: (bookId: string) => ReadingRound | undefined
@@ -90,11 +91,11 @@ export const useBookStore = create<BookStore>()(
         })
       },
 
-      toggleChapter: (tocItemId, roundId) => {
+      toggleChapter: (tocItemId, roundId, checkedAt) => {
         set(s => ({
           chapterStatuses: s.chapterStatuses.map(c =>
             c.tocItemId === tocItemId && c.roundId === roundId
-              ? { ...c, checked: !c.checked, checkedAt: !c.checked ? Date.now() : null }
+              ? { ...c, checked: !c.checked, checkedAt: !c.checked ? (checkedAt ?? Date.now()) : null }
               : c
           ),
         }))
@@ -110,11 +111,21 @@ export const useBookStore = create<BookStore>()(
         }))
       },
 
-      markDone: (tocItemId, roundId) => {
+      markDone: (tocItemId, roundId, checkedAt) => {
         set(s => ({
           chapterStatuses: s.chapterStatuses.map(c =>
             c.tocItemId === tocItemId && c.roundId === roundId
-              ? { ...c, checked: true, checkedAt: Date.now() }
+              ? { ...c, checked: true, checkedAt: checkedAt ?? Date.now() }
+              : c
+          ),
+        }))
+      },
+
+      updateCheckedAt: (tocItemId, roundId, checkedAt) => {
+        set(s => ({
+          chapterStatuses: s.chapterStatuses.map(c =>
+            c.tocItemId === tocItemId && c.roundId === roundId
+              ? { ...c, checkedAt }
               : c
           ),
         }))

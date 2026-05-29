@@ -1,13 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import type { TocItem, ChapterStatus, ReadingRound } from "@/lib/types"
 import { buildTree } from "@/lib/utils"
+import { DatePickerDialog } from "@/components/date-picker-dialog"
 
 interface OutlineViewProps {
   items: TocItem[]
   statuses: Map<string, ChapterStatus>
   round: ReadingRound
-  onToggle: (tocItemId: string) => void
+  onToggle: (tocItemId: string, checkedAt?: number) => void
 }
 
 export function OutlineView({ items, statuses, round, onToggle }: OutlineViewProps) {
@@ -42,12 +44,18 @@ function OutlineNode({
   item: TocItem
   tree: Map<string | null, TocItem[]>
   statuses: Map<string, ChapterStatus>
-  onToggle: (tocItemId: string) => void
+  onToggle: (tocItemId: string, checkedAt?: number) => void
   depth: number
 }) {
   const status = statuses.get(item.id)
   const checked = status?.checked ?? false
   const children = tree.get(item.id) ?? []
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const handleDateConfirm = (date: string) => {
+    const timestamp = new Date(date + "T12:00:00").getTime()
+    onToggle(item.id, timestamp)
+  }
 
   return (
     <>
@@ -76,13 +84,18 @@ function OutlineNode({
           </button>
         ) : (
           <button
-            onClick={() => onToggle(item.id)}
+            onClick={() => setDialogOpen(true)}
             className="rounded bg-[#f2f9ff] px-3 py-0.5 text-[11px] font-semibold text-[#097fe8] hover:bg-[#0075de] hover:text-white"
           >
             已读
           </button>
         )}
       </div>
+      <DatePickerDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onConfirm={handleDateConfirm}
+      />
       {children.map(child => (
         <OutlineNode
           key={child.id}
