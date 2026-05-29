@@ -1,17 +1,20 @@
 "use client"
 
-import { use, useState, useRef, useEffect } from "react"
+import { use, useState, useRef, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useBookStore } from "@/lib/store"
+import { useBook, useUpdateBookStatus, useUpdateBookDate, useDeleteBook } from "@/lib/hooks/use-books"
+import { useTocItems } from "@/lib/hooks/use-toc-items"
+import { useReadingRounds, useStartNewRound } from "@/lib/hooks/use-reading-rounds"
+import { useChapterStatuses, useToggleChapter, useScheduleChapter } from "@/lib/hooks/use-chapter-statuses"
+import { useBookTags, useAddBookTag, useRemoveBookTag } from "@/lib/hooks/use-tags"
 import { TableView } from "@/components/table-view"
 import { RoundSelector } from "@/components/round-selector"
 import { NewRoundDialog } from "@/components/new-round-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { Book } from "@/lib/types"
 
-const STATUS_OPTIONS: { value: NonNullable<Book['readingStatus']>; label: string; icon: string; color: string; bg: string; border: string }[] = [
+const STATUS_OPTIONS: { value: string; label: string; icon: string; color: string; bg: string; border: string }[] = [
   { value: 'want', label: '想读', icon: '💡', color: '#b55a00', bg: '#fef3e0', border: '#f5d6a3' },
   { value: 'reading', label: '在读', icon: '📖', color: '#0075de', bg: '#e8f4fd', border: '#b3ddf5' },
   { value: 'finished', label: '读完', icon: '✅', color: '#0a8a3e', bg: '#e6f7ed', border: '#b3e6c7' },
@@ -19,7 +22,7 @@ const STATUS_OPTIONS: { value: NonNullable<Book['readingStatus']>; label: string
   { value: 'idle', label: '闲置', icon: '⏸', color: '#615d59', bg: '#f6f5f4', border: 'rgba(0,0,0,0.1)' },
 ]
 
-function formatDate(ts: number): string {
+function formatDate(ts: number | string): string {
   const d = new Date(ts)
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -27,9 +30,9 @@ function formatDate(ts: number): string {
   return `${y}-${m}-${day}`
 }
 
-function parseDate(str: string): number | null {
-  const d = new Date(str + 'T00:00:00')
-  return isNaN(d.getTime()) ? null : d.getTime()
+function parseDate(str: string): string | null {
+  if (!str) return null
+  return new Date(str + 'T00:00:00').toISOString()
 }
 
 export default function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -38,33 +41,52 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
-  const [editingDate, setEditingDate] = useState<'startedReadingAt' | 'finishedReadingAt' | null>(null)
+  const [editingDate, setEditingDate] = useState<'started_reading_at' | 'finished_reading_at' | null>(null)
   const [tagInput, setTagInput] = useState("")
-  const store = useBookStore()
   const router = useRouter()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const dateInputRef = useRef<HTMLInputElement>(null)
 
-  const book = store.books.find(b => b.id === id)
-  const author = book ? store.authors.find(a => a.id === book.authorId) : undefined
-  const items = store.tocItems.filter(t => t.bookId === id)
-  const activeRound = book ? store.getActiveRound(id) : undefined
-  const selectedRound = selectedRoundId
-    ? store.rounds.find(r => r.id === selectedRoundId)
-    : activeRound
+  // Supabase queries
+  const { data: book } = useBook(id)
+  const { data: items = [] } = useTocItems(id)
+  const { data: rounds = [] } = useReadingRounds(id)
+  const { data: bookTags = [] } = useBookTags(id)
+
+  // Mutations
+  const updateBookStatus = useUpdateBookStatus()
+  const updateBookDate = useUpdateBookDate()
+  const deleteBook = useDeleteBook()
+  const toggleChapter = useToggleChapter()
+  const scheduleChapter = useScheduleChapter()
+  const startNewRound = useStartNewRound()
+  const addBookTag = useAddBookTag()
+  const removeBookTag = useRemoveBookTag()
+
+  // Derive active round
+  const activeRound = useMemo(
+    () => rounds.filter(r => r.status === 'active').sort((a, b) => b.round_number - a.round_number)[0],
+    [rounds]
+  )
+  const selectedRound = useMemo(
+    () => selectedRoundId ? rounds.find(r => r.id === selectedRoundId) : activeRound,
+    [selectedRoundId, rounds, activeRound]
+  )
   const roundId = selectedRound?.id ?? ""
 
-  const statuses = new Map(
-    store.chapterStatuses
-      .filter(c => c.roundId === roundId)
-      .map(c => [c.tocItemId, c])
+  // Chapter statuses for the selected round
+  const { data: rawStatuses = [] } = useChapterStatuses(roundId)
+
+  const statuses = useMemo(
+    () => new Map(rawStatuses.map(s => [s.toc_item_id, s])),
+    [rawStatuses]
   )
 
-  const checkedCount = [...statuses.values()].filter(s => s.checked).length
+  const checkedCount = useMemo(() => [...statuses.values()].filter(s => s.checked).length, [statuses])
   const totalCount = items.length
   const progress = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0
 
-  const statusInfo = STATUS_OPTIONS.find(o => o.value === book?.readingStatus)
+  const statusInfo = STATUS_OPTIONS.find(o => o.value === book?.reading_status)
 
   useEffect(() => {
     if (!statusDropdownOpen) return
@@ -97,33 +119,34 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  function handleStatusChange(status: Book['readingStatus']) {
-    if (!book) return
-    if (status === 'reading' && !book.startedReadingAt) {
-      store.updateBookDate(id, 'startedReadingAt', Date.now())
-    }
-    if (status === 'finished' && !book.finishedReadingAt) {
-      store.updateBookDate(id, 'finishedReadingAt', Date.now())
-    }
-    store.updateBookStatus(id, status)
+  const author = book.authors
+
+  function handleStatusChange(status: string) {
+    updateBookStatus.mutate({ bookId: id, status })
     setStatusDropdownOpen(false)
   }
 
-  function handleDateChange(field: 'startedReadingAt' | 'finishedReadingAt', value: string) {
-    const ts = parseDate(value)
-    store.updateBookDate(id, field, ts)
+  function handleDateChange(field: 'started_reading_at' | 'finished_reading_at', value: string) {
+    const iso = parseDate(value)
+    updateBookDate.mutate({ bookId: id, field, value: iso })
     setEditingDate(null)
   }
 
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
-      store.addBookTag(id, tagInput)
-      setTagInput("")
+      if (tagInput.trim()) {
+        addBookTag.mutate({ bookId: id, tagName: tagInput.trim() })
+        setTagInput("")
+      }
     }
   }
 
-  const hasDoubanMeta = book.publisher || book.publishDate || book.isbn || book.doubanRating || book.doubanUrl
+  function handleRemoveTag(tagId: string) {
+    removeBookTag.mutate({ bookId: id, tagId })
+  }
+
+  const hasDoubanMeta = book.publisher || book.publish_date || book.isbn || book.douban_rating || book.douban_url
 
   return (
     <div>
@@ -144,9 +167,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           <div className="w-[180px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-2 flex flex-col items-center justify-center">
             <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
               <div className="absolute inset-0 flex items-center justify-center text-3xl">📘</div>
-              {book.coverUrl && (
+              {book.cover_url && (
                 <img
-                  src={book.coverUrl}
+                  src={book.cover_url}
                   alt={book.title}
                   className="relative w-full h-full object-cover"
                   onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
@@ -159,7 +182,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex-1 min-w-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-3">
             <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">{book.title}</h1>
             <p className="text-[14px] text-[#615d59]">
-              <Link href={`/authors/${book.authorId}`} className="text-[#0075de] hover:underline">
+              <Link href={`/authors/${book.author_id}`} className="text-[#0075de] hover:underline">
                 {author?.name ?? "未知"}
               </Link>
             </p>
@@ -167,7 +190,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {/* Douban metadata */}
             {hasDoubanMeta && (
               <div className="flex flex-col gap-2 text-[13px]">
-                {(book.publisher || book.publishDate) && (
+                {(book.publisher || book.publish_date) && (
                   <div className="flex gap-5">
                     {book.publisher && (
                       <div>
@@ -175,10 +198,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
                       </div>
                     )}
-                    {book.publishDate && (
+                    {book.publish_date && (
                       <div>
                         <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">出版日期</span>
-                        <span className="text-[rgba(0,0,0,0.65)]">{book.publishDate}</span>
+                        <span className="text-[rgba(0,0,0,0.65)]">{book.publish_date}</span>
                       </div>
                     )}
                   </div>
@@ -189,18 +212,18 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                     <span className="text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
                   </div>
                 )}
-                {(book.doubanRating || book.doubanUrl) && (
+                {(book.douban_rating || book.douban_url) && (
                   <div className="flex gap-5">
-                    {book.doubanRating && (
+                    {book.douban_rating && (
                       <div>
                         <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣评分</span>
-                        <span className="text-[rgba(0,0,0,0.65)]">{book.doubanRating}</span>
+                        <span className="text-[rgba(0,0,0,0.65)]">{book.douban_rating}</span>
                       </div>
                     )}
-                    {book.doubanUrl && (
+                    {book.douban_url && (
                       <div>
                         <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣链接</span>
-                        <a href={book.doubanUrl} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.doubanUrl.match(/subject\/(\d+)/)?.[1] ?? book.doubanUrl}</a>
+                        <a href={book.douban_url} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.douban_url.match(/subject\/(\d+)/)?.[1] ?? book.douban_url}</a>
                       </div>
                     )}
                   </div>
@@ -211,11 +234,11 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {/* Tags — pushed to bottom */}
             <div className="mt-auto flex items-center gap-1.5 flex-wrap">
               <span className="text-[13px] text-[#9b958e] min-w-[28px]">标签</span>
-              {(book.tags ?? []).map(tag => (
-                <span key={tag} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[13px] text-[#615d59]">
-                  {tag}
+              {bookTags.map((tag: any) => (
+                <span key={tag.id} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[13px] text-[#615d59]">
+                  {tag.name}
                   <button
-                    onClick={() => store.removeBookTag(id, tag)}
+                    onClick={() => handleRemoveTag(tag.id)}
                     className="text-[#b0aaa3] hover:text-[#d83931] text-[14px] leading-none cursor-pointer"
                   >
                     ×
@@ -262,8 +285,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
               </div>
               {selectedRound && (
                 <RoundSelector
-                  rounds={store.rounds.filter(r => r.bookId === id)}
-                  selectedRound={selectedRound}
+                  rounds={rounds}
+                  selectedRound={mapRound(selectedRound)}
                   onSelectRound={(round) => setSelectedRoundId(round.id)}
                   onNewRound={() => setRoundDialogOpen(true)}
                 />
@@ -276,48 +299,48 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {/* Dates */}
             <div>
               <div className="text-[12px] text-[#9b958e] mb-1">开始日期</div>
-              {editingDate === 'startedReadingAt' ? (
+              {editingDate === 'started_reading_at' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
-                  defaultValue={book.startedReadingAt ? formatDate(book.startedReadingAt) : ''}
-                  onChange={e => handleDateChange('startedReadingAt', e.target.value)}
+                  defaultValue={book.started_reading_at ? formatDate(book.started_reading_at) : ''}
+                  onChange={e => handleDateChange('started_reading_at', e.target.value)}
                   className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
                 />
               ) : (
                 <span
-                  onClick={() => setEditingDate('startedReadingAt')}
+                  onClick={() => setEditingDate('started_reading_at')}
                   className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
-                    book.startedReadingAt
+                    book.started_reading_at
                       ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
                       : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
                   }`}
                 >
-                  {book.startedReadingAt ? formatDate(book.startedReadingAt) : '点击设置'}
+                  {book.started_reading_at ? formatDate(book.started_reading_at) : '点击设置'}
                 </span>
               )}
             </div>
 
             <div>
               <div className="text-[12px] text-[#9b958e] mb-1">完成日期</div>
-              {editingDate === 'finishedReadingAt' ? (
+              {editingDate === 'finished_reading_at' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
-                  defaultValue={book.finishedReadingAt ? formatDate(book.finishedReadingAt) : ''}
-                  onChange={e => handleDateChange('finishedReadingAt', e.target.value)}
+                  defaultValue={book.finished_reading_at ? formatDate(book.finished_reading_at) : ''}
+                  onChange={e => handleDateChange('finished_reading_at', e.target.value)}
                   className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
                 />
               ) : (
                 <span
-                  onClick={() => setEditingDate('finishedReadingAt')}
+                  onClick={() => setEditingDate('finished_reading_at')}
                   className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
-                    book.finishedReadingAt
+                    book.finished_reading_at
                       ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
                       : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
                   }`}
                 >
-                  {book.finishedReadingAt ? formatDate(book.finishedReadingAt) : '点击设置'}
+                  {book.finished_reading_at ? formatDate(book.finished_reading_at) : '点击设置'}
                 </span>
               )}
             </div>
@@ -338,12 +361,23 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
       {selectedRound && (
         <TableView
-          items={items}
-          statuses={statuses}
-          round={selectedRound}
-          onSchedule={(tocItemId, date) => store.scheduleChapter(tocItemId, roundId, date)}
-          onToggle={(tocItemId, checkedAt) => store.toggleChapter(tocItemId, roundId, checkedAt)}
-          onUpdateCheckedAt={(tocItemId, checkedAt) => store.updateCheckedAt(tocItemId, roundId, checkedAt)}
+          items={items.map(mapTocItem)}
+          statuses={new Map([...statuses].map(([k, v]) => [k, mapChapterStatus(v)]))}
+          round={mapRound(selectedRound)}
+          onSchedule={(tocItemId, date) => scheduleChapter.mutate({ tocItemId, roundId, date })}
+          onToggle={(tocItemId, checkedAt) => {
+            if (checkedAt) {
+              // Check: set checked=true and update checked_at
+              toggleChapter.mutate({ tocItemId, roundId, checked: true })
+            } else {
+              // Uncheck: set checked=false
+              toggleChapter.mutate({ tocItemId, roundId, checked: false })
+            }
+          }}
+          onUpdateCheckedAt={(tocItemId, checkedAt) => {
+            // Update checked_at timestamp (toggle ensures it's checked)
+            toggleChapter.mutate({ tocItemId, roundId, checked: true })
+          }}
           rightAction={
             <Link
               href={`/books/${id}/edit`}
@@ -357,9 +391,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
       <NewRoundDialog
         open={roundDialogOpen}
         onOpenChange={setRoundDialogOpen}
-        roundNumber={(store.rounds.filter(r => r.bookId === id).reduce((max, r) => Math.max(max, r.roundNumber), 0)) + 1}
+        roundNumber={rounds.reduce((max, r) => Math.max(max, r.round_number), 0) + 1}
         onConfirm={(inherit) => {
-          store.startNewRound(id, inherit)
+          startNewRound.mutate({ bookId: id, inheritSchedule: inherit })
         }}
       />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -375,8 +409,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <Button
               className="bg-[#d83931] hover:bg-[#b71c1c]"
               onClick={() => {
-                store.deleteBook(id)
-                router.push("/bookshelf")
+                deleteBook.mutate(id, {
+                  onSuccess: () => router.push("/bookshelf")
+                })
               }}
             >
               删除
@@ -386,4 +421,36 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
       </Dialog>
     </div>
   )
+}
+
+// --- Mapping helpers: Supabase snake_case -> component camelCase ---
+
+function mapTocItem(item: any) {
+  return {
+    id: item.id,
+    bookId: item.book_id,
+    parentId: item.parent_id,
+    title: item.title,
+    order: item.sort_order,
+  }
+}
+
+function mapChapterStatus(status: any) {
+  return {
+    tocItemId: status.toc_item_id,
+    roundId: status.round_id,
+    checked: status.checked,
+    checkedAt: status.checked_at,
+    scheduledDate: status.scheduled_date,
+  }
+}
+
+function mapRound(round: any) {
+  return {
+    id: round.id,
+    bookId: round.book_id,
+    roundNumber: round.round_number,
+    startedAt: round.started_at,
+    status: round.status,
+  }
 }
