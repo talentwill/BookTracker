@@ -1,28 +1,76 @@
 "use client"
 
-import { useState } from "react"
-import { useBookStore } from "@/lib/store"
+import { useState, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { createClient } from "@/lib/supabase/client"
+import { useBooks } from "@/lib/hooks/use-books"
 import { BookCard } from "@/components/book-card"
+
+const supabase = createClient()
 
 type Filter = "all" | "reading" | "done" | "today" | "unfinished"
 
 export default function BookshelfPage() {
   const [filter, setFilter] = useState<Filter>("all")
-  const store = useBookStore()
+  const { data: books } = useBooks()
   const today = new Date().toISOString().slice(0, 10)
 
-  const bookCards = store.books.map(book => {
-    const author = store.authors.find(a => a.id === book.authorId)
-    const round = store.getActiveRound(book.id)
-    const items = store.tocItems.filter(t => t.bookId === book.id)
-    const statuses = store.chapterStatuses.filter(c => c.roundId === (round?.id ?? ""))
-    const checkedCount = statuses.filter(s => s.checked).length
-    const totalCount = items.length
-    const isComplete = totalCount > 0 && checkedCount === totalCount
-    const hasToday = statuses.some(s => !s.checked && s.scheduledDate === today)
-    const hasUnfinished = items.length > 0 && statuses.filter(s => s.checked).length < items.length
-    return { book, author, round, items, statuses, isComplete, hasToday, hasUnfinished, checkedCount, totalCount }
+  const { data: allRounds } = useQuery({
+    queryKey: ["reading-rounds", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("reading_rounds").select("*")
+      if (error) throw error
+      return data ?? []
+    },
   })
+
+  const { data: allTocItems } = useQuery({
+    queryKey: ["toc-items", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const { data: allStatuses } = useQuery({
+    queryKey: ["chapter-statuses", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("chapter_statuses").select("*")
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const bookCards = useMemo(() => {
+    if (!books || !allRounds || !allTocItems || !allStatuses) return []
+
+    return books.map(book => {
+      const author = book.authors
+      const activeRound = allRounds
+        .filter((r: any) => r.book_id === book.id && r.status === "active")
+        .sort((a: any, b: any) => b.round_number - a.round_number)[0]
+      const items = allTocItems.filter((t: any) => t.book_id === book.id)
+      const statuses = allStatuses.filter((s: any) => s.round_id === (activeRound?.id ?? ""))
+      const checkedCount = statuses.filter((s: any) => s.checked).length
+      const totalCount = items.length
+      const isComplete = totalCount > 0 && checkedCount === totalCount
+      const hasToday = statuses.some((s: any) => !s.checked && s.scheduled_date === today)
+      const hasUnfinished = items.length > 0 && statuses.filter((s: any) => s.checked).length < items.length
+      return {
+        book: mapBook(book),
+        author: author ? mapAuthor(author) : undefined,
+        round: activeRound ? mapRound(activeRound) : undefined,
+        items: items.map(mapTocItem),
+        statuses: statuses.map(mapChapterStatus),
+        isComplete,
+        hasToday,
+        hasUnfinished,
+        checkedCount,
+        totalCount,
+      }
+    })
+  }, [books, allRounds, allTocItems, allStatuses, today])
 
   const filtered = bookCards.filter(b => {
     if (filter === "all") return true
@@ -74,4 +122,65 @@ export default function BookshelfPage() {
       </div>
     </div>
   )
+}
+
+// --- Mapping helpers: Supabase snake_case -> component camelCase ---
+
+function mapBook(book: any) {
+  return {
+    id: book.id,
+    title: book.title,
+    authorId: book.author_id,
+    tocText: book.toc_text ?? "",
+    createdAt: book.created_at,
+    publisher: book.publisher,
+    publishDate: book.publish_date,
+    isbn: book.isbn,
+    coverUrl: book.cover_url,
+    doubanRating: book.douban_rating,
+    doubanUrl: book.douban_url,
+    readingStatus: book.reading_status,
+    startedReadingAt: book.started_reading_at,
+    finishedReadingAt: book.finished_reading_at,
+    tags: book.tags,
+  }
+}
+
+function mapAuthor(author: any) {
+  return {
+    id: author.id,
+    name: author.name,
+    note: author.note,
+    createdAt: author.created_at,
+  }
+}
+
+function mapTocItem(item: any) {
+  return {
+    id: item.id,
+    bookId: item.book_id,
+    parentId: item.parent_id,
+    title: item.title,
+    order: item.sort_order,
+  }
+}
+
+function mapChapterStatus(status: any) {
+  return {
+    tocItemId: status.toc_item_id,
+    roundId: status.round_id,
+    checked: status.checked,
+    checkedAt: status.checked_at,
+    scheduledDate: status.scheduled_date,
+  }
+}
+
+function mapRound(round: any) {
+  return {
+    id: round.id,
+    bookId: round.book_id,
+    roundNumber: round.round_number,
+    startedAt: round.started_at,
+    status: round.status,
+  }
 }
