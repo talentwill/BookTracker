@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAIConfigStore } from "@/lib/ai-config-store"
+import { useProfile } from "@/lib/hooks/use-profile"
 import { parseOutline } from "@/lib/outline-parser"
 import { useAddBook } from "@/lib/hooks/use-books"
 import { useReplaceBookToc } from "@/lib/hooks/use-toc-items"
@@ -38,7 +38,7 @@ function tocItemsToRpcFormat(items: TocItem[]): Array<{ title: string; indent: n
 
 export default function AddBookPage() {
   const router = useRouter()
-  const aiConfig = useAIConfigStore()
+  const { data: profile } = useProfile()
   const addBook = useAddBook()
   useReplaceBookToc()
 
@@ -128,10 +128,8 @@ export default function AddBookPage() {
   }
 
   async function handleAiParse(text: string) {
-    const provider = aiConfig.defaultProvider
-    const config = aiConfig[provider]
-    if (!config.apiKey) {
-      setTocError(`请先在设置页面配置 ${provider === "claude" ? "Claude" : "OpenAI"} API Key`)
+    if (!profile?.ai_api_key) {
+      setTocError("请先在设置页面配置 AI API Key")
       setTocRawText(text)
       return
     }
@@ -144,10 +142,10 @@ export default function AddBookPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: text.trim(),
-          provider,
-          apiKey: config.apiKey,
-          baseUrl: config.baseUrl,
-          model: config.model,
+          provider: profile.ai_provider,
+          apiKey: profile.ai_api_key,
+          baseUrl: profile.ai_base_url,
+          model: profile.ai_model,
         }),
       })
       if (!res.ok) {

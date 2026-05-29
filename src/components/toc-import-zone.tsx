@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useAIConfigStore } from "@/lib/ai-config-store"
+import { useProfile } from "@/lib/hooks/use-profile"
 import { parseOutline } from "@/lib/outline-parser"
 import type { TocItem } from "@/lib/types"
 
@@ -15,16 +15,13 @@ export function TocImportZone({ bookId, onImport }: TocImportZoneProps) {
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const aiConfig = useAIConfigStore()
+  const { data: profile } = useProfile()
 
   async function handleImport() {
     if (!text.trim()) return
 
-    const provider = aiConfig.defaultProvider
-    const config = aiConfig[provider]
-
-    if (!config.apiKey) {
-      setError(`请先在设置页面配置 ${provider === 'claude' ? 'Claude' : 'OpenAI'} API Key`)
+    if (!profile?.ai_api_key) {
+      setError("请先在设置页面配置 AI API Key")
       return
     }
 
@@ -37,10 +34,10 @@ export function TocImportZone({ bookId, onImport }: TocImportZoneProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: text.trim(),
-          provider,
-          apiKey: config.apiKey,
-          baseUrl: config.baseUrl,
-          model: config.model,
+          provider: profile.ai_provider,
+          apiKey: profile.ai_api_key,
+          baseUrl: profile.ai_base_url,
+          model: profile.ai_model,
         }),
       })
 

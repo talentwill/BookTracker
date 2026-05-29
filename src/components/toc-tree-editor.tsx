@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react"
 import type { TocItem } from "@/lib/types"
-import { useAIConfigStore } from "@/lib/ai-config-store"
+import { useProfile } from "@/lib/hooks/use-profile"
 import { parseOutline } from "@/lib/outline-parser"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -159,7 +159,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
   const [importText, setImportText] = useState("")
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [pendingImportMode, setPendingImportMode] = useState<"direct" | "ai">("direct")
-  const aiConfig = useAIConfigStore()
+  const { data: profile } = useProfile()
   const containerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -370,15 +370,19 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
   }, [bookId, onChange])
 
   async function callAiParse(text: string): Promise<TocItem[]> {
-    const provider = aiConfig.defaultProvider
-    const config = aiConfig[provider]
-    if (!config.apiKey) {
-      throw new Error(`请先在设置页面配置 ${provider === "claude" ? "Claude" : "OpenAI"} API Key`)
+    if (!profile?.ai_api_key) {
+      throw new Error("请先在设置页面配置 AI API Key")
     }
     const res = await fetch("/api/toc-parse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, provider, apiKey: config.apiKey, baseUrl: config.baseUrl, model: config.model }),
+      body: JSON.stringify({
+        text,
+        provider: profile.ai_provider,
+        apiKey: profile.ai_api_key,
+        baseUrl: profile.ai_base_url,
+        model: profile.ai_model,
+      }),
     })
     if (!res.ok) { const d = await res.json(); throw new Error(d.error || `请求失败 (${res.status})`) }
     const data = await res.json()
