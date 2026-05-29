@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
+import { createClient } from "@/lib/supabase/client"
 
 const tabs = [
   { label: "首页", href: "/" },
@@ -12,6 +14,14 @@ const tabs = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user } = useAuth()
+  const supabase = createClient()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push("/login")
+  }
 
   function isActiveTab(href: string) {
     if (href === "/") return pathname === "/"
@@ -64,6 +74,26 @@ export function Navbar() {
           >
             + 添加书籍
           </Link>
+          {user ? (
+            <>
+              <span className="text-[13px] text-[#615d59] max-w-[160px] truncate">
+                {user.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-medium text-[#615d59] hover:text-[rgba(0,0,0,0.95)] hover:bg-[#f6f5f4] rounded-md transition-colors"
+              >
+                退出
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md transition-colors"
+            >
+              登录
+            </Link>
+          )}
         </div>
       </div>
     </nav>
