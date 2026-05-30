@@ -120,14 +120,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    border-color: rgba(0, 0, 0, 0.1);
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif;
-    color: rgba(0, 0, 0, 0.95);
-    background: #ffffff;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

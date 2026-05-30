@@ -110,7 +110,7 @@ export default function BookshelfPage() {
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={`rounded-full px-3 py-1 text-xs font-medium ${
-                filter === f.key ? "bg-[#0075de] text-white" : "bg-[#f2f9ff] text-[#097fe8] hover:bg-[#e0ecf8]"
+                filter === f.key ? "bg-[#0075de] text-white" : "bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5] hover:bg-[#e0ecf8] dark:hover:bg-[#097fe8]/30"
               }`}
             >
               {f.label}

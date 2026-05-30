@@ -119,7 +119,7 @@ export default function HomePage() {
   return (
     <div>
       <div className="flex items-center justify-between px-6" style={{ height: '49px' }}>
-        <p className="text-sm text-[#615d59]">{dateStr}</p>
+        <p className="text-sm text-muted-foreground">{dateStr}</p>
         <Link
           href="/books/add"
           className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-semibold bg-[#0075de] hover:bg-[#005bab] text-white rounded-md transition-colors"
@@ -158,7 +158,7 @@ export default function HomePage() {
 
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">今日阅读清单</h2>
+          <h2 className="text-base font-bold text-foreground">今日阅读清单</h2>
         </div>
         <TodayReadingList
           items={todayItems}
@@ -176,7 +176,7 @@ export default function HomePage() {
       {readingBooks.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-bold text-[rgba(0,0,0,0.95)]">最近在读</h2>
+            <h2 className="text-base font-bold text-foreground">最近在读</h2>
             <Link href="/bookshelf" className="text-xs font-medium text-[#097fe8] hover:underline">
               查看书架 →
             </Link>

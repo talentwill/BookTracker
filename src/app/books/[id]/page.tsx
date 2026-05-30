@@ -114,7 +114,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
   if (!book) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <p className="text-[#615d59]">书籍未找到</p>
+        <p className="text-muted-foreground">书籍未找到</p>
         <Link href="/bookshelf" className="text-[#0075de] hover:underline">返回书架</Link>
       </div>
     )
@@ -165,8 +165,8 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
         </div>
         <div className="flex items-stretch gap-5">
           {/* Card 1: Cover */}
-          <div className="w-[180px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-2 flex flex-col items-center justify-center">
-            <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)]">
+          <div className="w-[180px] shrink-0 bg-card border border-border rounded-[10px] p-2 flex flex-col items-center justify-center">
+            <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden border border-border bg-muted">
               <div className="absolute inset-0 flex items-center justify-center text-3xl">📘</div>
               {book.cover_url && (
                 <img
@@ -180,9 +180,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Card 2: Book info */}
-          <div className="flex-1 min-w-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-3">
-            <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">{book.title}</h1>
-            <p className="text-[14px] text-[#615d59]">
+          <div className="flex-1 min-w-0 bg-card border border-border rounded-[10px] p-5 flex flex-col gap-3">
+            <h1 className="text-xl font-bold text-foreground">{book.title}</h1>
+            <p className="text-[14px] text-muted-foreground">
               <Link href={`/authors/${book.author_id}`} className="text-[#0075de] hover:underline">
                 {author?.name ?? "未知"}
               </Link>
@@ -195,35 +195,35 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                   <div className="flex gap-5">
                     {book.publisher && (
                       <div>
-                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">出版社</span>
-                        <span className="text-[rgba(0,0,0,0.65)]">{book.publisher}</span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-muted-foreground">出版社</span>
+                        <span className="text-foreground/70">{book.publisher}</span>
                       </div>
                     )}
                     {book.publish_date && (
                       <div>
-                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">出版日期</span>
-                        <span className="text-[rgba(0,0,0,0.65)]">{book.publish_date}</span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-muted-foreground">出版日期</span>
+                        <span className="text-foreground/70">{book.publish_date}</span>
                       </div>
                     )}
                   </div>
                 )}
                 {book.isbn && (
                   <div>
-                    <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">ISBN</span>
-                    <span className="text-[rgba(0,0,0,0.65)] font-mono">{book.isbn}</span>
+                    <span className="inline-block w-14 whitespace-nowrap font-medium text-muted-foreground">ISBN</span>
+                    <span className="text-foreground/70 font-mono">{book.isbn}</span>
                   </div>
                 )}
                 {(book.douban_rating || book.douban_url) && (
                   <div className="flex gap-5">
                     {book.douban_rating && (
                       <div>
-                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣评分</span>
-                        <span className="text-[rgba(0,0,0,0.65)]">{book.douban_rating}</span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-muted-foreground">豆瓣评分</span>
+                        <span className="text-foreground/70">{book.douban_rating}</span>
                       </div>
                     )}
                     {book.douban_url && (
                       <div>
-                        <span className="inline-block w-14 whitespace-nowrap font-medium text-[#615d59]">豆瓣链接</span>
+                        <span className="inline-block w-14 whitespace-nowrap font-medium text-muted-foreground">豆瓣链接</span>
                         <a href={book.douban_url} target="_blank" rel="noopener noreferrer" className="text-[#0075de] hover:underline">{book.douban_url.match(/subject\/(\d+)/)?.[1] ?? book.douban_url}</a>
                       </div>
                     )}
@@ -234,13 +234,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Tags — pushed to bottom */}
             <div className="mt-auto flex items-center gap-1.5 flex-wrap">
-              <span className="text-[13px] text-[#9b958e] min-w-[28px]">标签</span>
+              <span className="text-[13px] text-muted-foreground min-w-[28px]">标签</span>
               {bookTags.map((tag) => (
-                <span key={tag.id} className="inline-flex items-center gap-1 bg-[#f6f5f4] border border-[rgba(0,0,0,0.06)] rounded px-2 py-0.5 text-[13px] text-[#615d59]">
+                <span key={tag.id} className="inline-flex items-center gap-1 bg-muted border border-border rounded px-2 py-0.5 text-[13px] text-muted-foreground">
                   {tag.name}
                   <button
                     onClick={() => handleRemoveTag(tag.id)}
-                    className="text-[#b0aaa3] hover:text-[#d83931] text-[14px] leading-none cursor-pointer"
+                    className="text-muted-foreground/50 hover:text-[#d83931] text-[14px] leading-none cursor-pointer"
                   >
                     ×
                   </button>
@@ -251,13 +251,13 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                 onChange={e => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
                 placeholder="添加标签"
-                className="border border-dashed border-[rgba(0,0,0,0.15)] rounded px-2 py-0.5 text-[13px] text-[#615d59] bg-transparent outline-none w-20 placeholder:text-[#c5bfb8]"
+                className="border border-dashed border-input rounded px-2 py-0.5 text-[13px] text-muted-foreground bg-transparent outline-none w-20 placeholder:text-muted-foreground/40"
               />
             </div>
           </div>
 
           {/* Card 3: Reading info */}
-          <div className="w-[300px] shrink-0 bg-white border border-[rgba(0,0,0,0.06)] rounded-[10px] p-5 flex flex-col gap-4">
+          <div className="w-[300px] shrink-0 bg-card border border-border rounded-[10px] p-5 flex flex-col gap-4">
             {/* Status + Round */}
             <div className="flex items-center justify-between gap-2">
               <div className="relative" ref={dropdownRef}>
@@ -269,12 +269,12 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
                   {statusInfo ? `${statusInfo.icon} ${statusInfo.label}` : '设置状态'}
                 </button>
                 {statusDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-[rgba(0,0,0,0.1)] rounded-lg shadow-lg z-10 py-1 min-w-[120px]">
+                  <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-lg shadow-lg z-10 py-1 min-w-[120px]">
                     {STATUS_OPTIONS.map(opt => (
                       <button
                         key={opt.value}
                         onClick={() => handleStatusChange(opt.value)}
-                        className="w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] flex items-center gap-2"
+                        className="w-full text-left px-3 py-1.5 text-[13px] hover:bg-accent flex items-center gap-2"
                         style={{ color: opt.color }}
                       >
                         <span>{opt.icon}</span>
@@ -295,26 +295,26 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             </div>
 
             {/* Divider */}
-            <div className="border-t border-[rgba(0,0,0,0.06)]" />
+            <div className="border-t border-border" />
 
             {/* Dates */}
             <div>
-              <div className="text-[12px] text-[#9b958e] mb-1">开始日期</div>
+              <div className="text-[12px] text-muted-foreground mb-1">开始日期</div>
               {editingDate === 'started_reading_at' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
                   defaultValue={book.started_reading_at ? formatDate(book.started_reading_at) : ''}
                   onChange={e => handleDateChange('started_reading_at', e.target.value)}
-                  className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  className="text-[14px] text-foreground/70 border border-input rounded px-1 py-0.5 outline-none bg-background"
                 />
               ) : (
                 <span
                   onClick={() => setEditingDate('started_reading_at')}
-                  className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                  className={`text-[14px] cursor-pointer border-b border-dashed border-input pb-px ${
                     book.started_reading_at
-                      ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
-                      : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
+                      ? 'text-foreground/70 hover:text-[#0075de] hover:border-[#0075de]'
+                      : 'text-muted-foreground/40 hover:text-[#0075de] hover:border-[#0075de]'
                   }`}
                 >
                   {book.started_reading_at ? formatDate(book.started_reading_at) : '点击设置'}
@@ -323,22 +323,22 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             </div>
 
             <div>
-              <div className="text-[12px] text-[#9b958e] mb-1">完成日期</div>
+              <div className="text-[12px] text-muted-foreground mb-1">完成日期</div>
               {editingDate === 'finished_reading_at' ? (
                 <input
                   ref={dateInputRef}
                   type="date"
                   defaultValue={book.finished_reading_at ? formatDate(book.finished_reading_at) : ''}
                   onChange={e => handleDateChange('finished_reading_at', e.target.value)}
-                  className="text-[14px] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.15)] rounded px-1 py-0.5 outline-none"
+                  className="text-[14px] text-foreground/70 border border-input rounded px-1 py-0.5 outline-none bg-background"
                 />
               ) : (
                 <span
                   onClick={() => setEditingDate('finished_reading_at')}
-                  className={`text-[14px] cursor-pointer border-b border-dashed border-[rgba(0,0,0,0.15)] pb-px ${
+                  className={`text-[14px] cursor-pointer border-b border-dashed border-input pb-px ${
                     book.finished_reading_at
-                      ? 'text-[rgba(0,0,0,0.65)] hover:text-[#0075de] hover:border-[#0075de]'
-                      : 'text-[#c5bfb8] hover:text-[#0075de] hover:border-[#0075de]'
+                      ? 'text-foreground/70 hover:text-[#0075de] hover:border-[#0075de]'
+                      : 'text-muted-foreground/40 hover:text-[#0075de] hover:border-[#0075de]'
                   }`}
                 >
                   {book.finished_reading_at ? formatDate(book.finished_reading_at) : '点击设置'}
@@ -349,10 +349,10 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             {/* Progress bar — pushed to bottom */}
             <div className="mt-auto">
               <div className="mb-1 flex justify-between text-[13px]">
-                <span className="text-[#615d59]">阅读进度</span>
+                <span className="text-muted-foreground">阅读进度</span>
                 <span className="font-semibold text-[#097fe8]">{checkedCount}/{totalCount} &middot; {progress}%</span>
               </div>
-              <div className="h-[5px] overflow-hidden rounded-full bg-[#f2f9ff]">
+              <div className="h-[5px] overflow-hidden rounded-full bg-muted">
                 <div className="h-full rounded-full bg-[#0075de] transition-all" style={{ width: `${progress}%` }} />
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
           rightAction={
             <Link
               href={`/books/${id}/edit`}
-              className="rounded-full px-3 py-1 text-xs font-medium bg-[rgba(0,0,0,0.05)] text-[#615d59] hover:bg-[rgba(0,0,0,0.08)] transition-colors"
+              className="rounded-full px-3 py-1 text-xs font-medium bg-muted text-muted-foreground hover:bg-accent transition-colors"
             >
               编辑目录
             </Link>
@@ -400,9 +400,9 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
             <DialogTitle>删除书籍</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-[13px] text-[#615d59]">确定要删除《{book.title}》吗？此操作不可撤销。</p>
+            <p className="text-[13px] text-muted-foreground">确定要删除《{book.title}》吗？此操作不可撤销。</p>
           </div>
-          <div className="flex justify-end gap-2 border-t border-[rgba(0,0,0,0.1)] pt-4">
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="ghost" onClick={() => setDeleteDialogOpen(false)}>取消</Button>
             <Button
               className="bg-[#d83931] hover:bg-[#b71c1c]"
@@ -420,4 +420,3 @@ export default function BookDetailPage({ params }: { params: Promise<{ id: strin
     </div>
   )
 }
-

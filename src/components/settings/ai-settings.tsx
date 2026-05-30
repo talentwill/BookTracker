@@ -1,0 +1,123 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react"
+import { useProfile, useUpdateProfile } from "@/lib/hooks/use-profile"
+
+export function AiSettings() {
+  const { data: profile } = useProfile()
+  return <AiSettingsForm key={profile?.id ?? "init"} profile={profile} />
+}
+
+function AiSettingsForm({ profile }: { profile: ReturnType<typeof useProfile>["data"] }) {
+  const updateProfile = useUpdateProfile()
+  const [saved, setSaved] = useState(false)
+  const [apiKey, setApiKey] = useState(profile?.ai_api_key ?? "")
+  const [baseUrl, setBaseUrl] = useState(profile?.ai_base_url ?? "")
+  const [model, setModel] = useState(profile?.ai_model ?? "")
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  function handleSave() {
+    if (updateProfile.isPending) return
+    updateProfile.mutate(
+      {
+        ai_api_key: apiKey,
+        ai_base_url: baseUrl,
+        ai_model: model,
+      },
+      {
+        onSuccess: () => {
+          setSaved(true)
+          if (timerRef.current) clearTimeout(timerRef.current)
+          timerRef.current = setTimeout(() => setSaved(false), 2000)
+        },
+      }
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Default provider */}
+      <div>
+        <label className="text-[13px] font-semibold text-muted-foreground block mb-2">默认 AI 提供商</label>
+        <div className="flex gap-2">
+          {(["claude", "openai"] as const).map(p => (
+            <button
+              key={p}
+              onClick={() => updateProfile.mutate({ ai_provider: p })}
+              className={`flex-1 py-2 px-3 rounded-lg text-[13px] font-semibold cursor-pointer border transition-colors ${
+                profile?.ai_provider === p
+                  ? "border-[#0075de] bg-[#f2f9ff] dark:bg-[#0075de]/15 text-[#0075de] dark:text-[#5bb8f5]"
+                  : "border-input bg-background text-muted-foreground hover:border-foreground/30"
+              }`}
+            >
+              {p === "claude" ? "Claude" : "OpenAI"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-border" />
+
+      {/* AI config */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[14px] font-semibold text-foreground">
+            {profile?.ai_provider === "openai" ? "OpenAI" : "Claude"}
+          </span>
+          <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+            {profile?.ai_provider === "openai" ? "OpenAI" : "Anthropic"}
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-[12px] text-muted-foreground block mb-1">API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={e => setApiKey(e.target.value)}
+              placeholder={profile?.ai_provider === "openai" ? "sk-..." : "sk-ant-..."}
+              className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-background"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] text-muted-foreground block mb-1">Base URL</label>
+            <input
+              value={baseUrl}
+              onChange={e => setBaseUrl(e.target.value)}
+              className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-background"
+            />
+            <span className="text-[11px] text-muted-foreground mt-1 block">留空使用默认地址，或填入代理地址</span>
+          </div>
+          <div>
+            <label className="text-[12px] text-muted-foreground block mb-1">模型</label>
+            <input
+              value={model}
+              onChange={e => setModel(e.target.value)}
+              className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] font-mono outline-none focus:border-[#0075de] bg-background"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-border" />
+
+      <div className="flex items-center justify-end gap-3">
+        {saved && <span className="text-[12px] text-green-600">已保存</span>}
+        <button
+          onClick={handleSave}
+          disabled={updateProfile.isPending}
+          className="bg-[#0075de] text-white border-none rounded-lg px-5 py-2 text-[13px] font-semibold cursor-pointer hover:bg-[#005bab] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {updateProfile.isPending ? "保存中..." : "保存设置"}
+        </button>
+      </div>
+    </div>
+  )
+}

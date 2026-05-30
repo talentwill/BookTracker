@@ -442,20 +442,20 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        {title && <span className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)]">{title}</span>}
+        {title && <span className="text-[14px] font-semibold text-foreground">{title}</span>}
         <div className="flex items-center gap-2">
           {aiError && <span className="text-[12px] text-[#d83931]">{aiError}</span>}
           {!importMode && (
             <>
               <button
                 onClick={() => enterImportMode("direct")}
-                className="bg-[rgba(0,0,0,0.05)] text-[rgba(0,0,0,0.65)] border border-[rgba(0,0,0,0.1)] rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-[rgba(0,0,0,0.08)]"
+                className="bg-muted text-foreground/70 border border-border rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-accent"
               >
                 导入目录
               </button>
               <button
                 onClick={() => enterImportMode("ai")}
-                className="bg-[#f2f9ff] text-[#097fe8] border border-[#b3ddf5] rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-[#e0f0ff]"
+                className="bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5] border border-[#b3ddf5] dark:border-[#097fe8]/30 rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-[#e0f0ff] dark:hover:bg-[#097fe8]/30"
               >
                 ✨ AI 整理
               </button>
@@ -469,9 +469,9 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
           <DialogHeader>
             <DialogTitle className="text-[15px]">导入目录</DialogTitle>
           </DialogHeader>
-          <p className="text-[13px] text-[#615d59]">当前已有目录内容，导入新目录时如何处理？</p>
+          <p className="text-[13px] text-muted-foreground">当前已有目录内容，导入新目录时如何处理？</p>
           <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setImportDialogOpen(false)} className="text-[13px] font-semibold text-[#615d59]">
+            <Button variant="ghost" onClick={() => setImportDialogOpen(false)} className="text-[13px] font-semibold text-muted-foreground">
               取消
             </Button>
             <Button variant="outline" onClick={() => confirmImportDialog(true)} className="text-[13px] font-semibold">
@@ -486,14 +486,14 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
 
       {importMode ? (
         <div>
-          <div className="flex border border-[rgba(0,0,0,0.08)] rounded-lg bg-[#fafaf9]" style={{ height: TEXTAREA_HEIGHT }}>
+          <div className="flex border border-border rounded-lg bg-muted" style={{ height: TEXTAREA_HEIGHT }}>
             <div
               ref={el => {
                 if (el && textareaRef.current) {
                   textareaRef.current.onscroll = () => { el.scrollTop = textareaRef.current!.scrollTop }
                 }
               }}
-              className="flex-shrink-0 w-5 overflow-hidden bg-[#f0efed] border-r border-[rgba(0,0,0,0.06)] text-right pr-1 pt-4 text-[13px] font-mono leading-relaxed text-[rgba(0,0,0,0.25)] select-none rounded-l-lg"
+              className="flex-shrink-0 w-5 overflow-hidden bg-muted border-r border-border text-right pr-1 pt-4 text-[13px] font-mono leading-relaxed text-foreground/25 select-none rounded-l-lg"
             >
               {importText.split("\n").map((line, i) => {
                 const tabCount = (line.match(/^\t*/) ?? [""])[0].length
@@ -565,14 +565,14 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
                 }
               }}
               placeholder={"粘贴目录文本，支持两种格式：\n\n格式一（带横线前缀）：\n- 第一章\n\t- 第一节\n\t- 第二节\n- 第二章\n\n格式二（纯缩进文本）：\n第一章\n\t第一节\n\t第二节\n第二章"}
-              className="flex-1 bg-transparent text-[13px] text-[rgba(0,0,0,0.95)] p-4 outline-none resize-none font-mono leading-relaxed"
+              className="flex-1 bg-transparent text-[13px] text-foreground p-4 outline-none resize-none font-mono leading-relaxed"
               style={{ tabSize: 8 }}
             />
           </div>
           <div className="mt-3 flex items-center justify-end gap-4">
             <button
               onClick={cancelImport}
-              className="text-[13px] text-[rgba(0,0,0,0.45)] hover:text-[rgba(0,0,0,0.65)] cursor-pointer"
+              className="text-[13px] text-foreground/45 hover:text-foreground/70 cursor-pointer"
             >
               取消
             </button>
@@ -589,7 +589,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
       <div
         ref={containerRef}
         onKeyDown={handleKeyDown}
-        className="border border-[rgba(0,0,0,0.08)] rounded-lg bg-[#fafaf9] overflow-auto"
+        className="border border-border rounded-lg bg-muted overflow-auto"
         style={{ height: TEXTAREA_HEIGHT }}
       >
         {items.length === 0 ? (
@@ -635,7 +635,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
                       syncTextAndPush()
                       focusedIdRef.current = null
                     }}
-                    className="flex-1 text-[13px] text-[rgba(0,0,0,0.95)] pl-2 pr-1 py-0.5 outline-none min-w-0"
+                    className="flex-1 text-[13px] text-foreground pl-2 pr-1 py-0.5 outline-none min-w-0"
                   >
                     {item.title}
                   </span>
@@ -649,13 +649,13 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
 
       {!importMode && items.length > 0 && (
         <div className="mt-2 flex items-center gap-4 flex-wrap text-[11px] text-[#9b958e]">
-          <span><kbd className="bg-[#f0efed] border border-[rgba(0,0,0,0.1)] rounded px-1 py-px text-[10px]">Enter</kbd> 添加同级</span>
-          <span><kbd className="bg-[#f0efed] border border-[rgba(0,0,0,0.1)] rounded px-1 py-px text-[10px]">Tab</kbd> 缩进</span>
-          <span><kbd className="bg-[#f0efed] border border-[rgba(0,0,0,0.1)] rounded px-1 py-px text-[10px]">Shift+Tab</kbd> 出缩进</span>
+          <span><kbd className="bg-muted border border-border rounded px-1 py-px text-[10px]">Enter</kbd> 添加同级</span>
+          <span><kbd className="bg-muted border border-border rounded px-1 py-px text-[10px]">Tab</kbd> 缩进</span>
+          <span><kbd className="bg-muted border border-border rounded px-1 py-px text-[10px]">Shift+Tab</kbd> 出缩进</span>
           <span>⌫ 删除空项</span>
           <span>📋 粘贴大纲</span>
-          <span><kbd className="bg-[#f0efed] border border-[rgba(0,0,0,0.1)] rounded px-1 py-px text-[10px]">⌘Z</kbd> 撤销</span>
-          <span><kbd className="bg-[#f0efed] border border-[rgba(0,0,0,0.1)] rounded px-1 py-px text-[10px]">⌘⇧Z</kbd> 重做</span>
+          <span><kbd className="bg-muted border border-border rounded px-1 py-px text-[10px]">⌘Z</kbd> 撤销</span>
+          <span><kbd className="bg-muted border border-border rounded px-1 py-px text-[10px]">⌘⇧Z</kbd> 重做</span>
         </div>
       )}
     </div>

@@ -67,9 +67,9 @@ export default function AuthorsPage() {
 
   return (
     <div>
-      <div className="border-b border-[rgba(0,0,0,0.05)] px-6 py-4">
-        <p className="text-xs text-[#615d59]">
-          共 <strong className="text-[rgba(0,0,0,0.95)]">{authors?.length ?? 0}</strong> 位作者 · <strong className="text-[rgba(0,0,0,0.95)]">{books?.length ?? 0}</strong> 本书
+      <div className="border-b border-border px-6 py-4">
+        <p className="text-xs text-muted-foreground">
+          共 <strong className="text-foreground">{authors?.length ?? 0}</strong> 位作者 · <strong className="text-foreground">{books?.length ?? 0}</strong> 本书
         </p>
       </div>
       <div className="flex flex-col gap-3 p-5">
@@ -77,7 +77,7 @@ export default function AuthorsPage() {
           <AuthorCard key={ad.author.id} author={ad.author} books={ad.books} />
         ))}
         {authorData.length === 0 && (
-          <div className="py-16 text-center text-sm text-[#a39e98]">还没有添加任何书籍</div>
+          <div className="py-16 text-center text-sm text-muted-foreground">还没有添加任何书籍</div>
         )}
       </div>
     </div>

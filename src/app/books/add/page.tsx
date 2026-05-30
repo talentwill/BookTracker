@@ -221,11 +221,11 @@ export default function AddBookPage() {
         &larr; 返回书架
       </Link>
 
-      <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)] mb-6">添加书籍</h1>
+      <h1 className="text-xl font-bold text-foreground mb-6">添加书籍</h1>
 
       {/* Section 1: Douban Import */}
       <section className="mb-6">
-        <label className="text-[13px] font-medium text-[rgba(0,0,0,0.95)] block mb-1.5">
+        <label className="text-[13px] font-medium text-foreground block mb-1.5">
           豆瓣链接
         </label>
         <div className="flex gap-2">
@@ -233,7 +233,7 @@ export default function AddBookPage() {
             value={doubanUrl}
             onChange={e => setDoubanUrl(e.target.value)}
             placeholder="https://book.douban.com/subject/..."
-            className="flex-1 h-9 px-3 border border-[rgba(0,0,0,0.1)] rounded-md text-[13px] outline-none focus:border-[#0075de]"
+            className="flex-1 h-9 px-3 border border-border rounded-md text-[13px] outline-none focus:border-[#0075de]"
             onKeyDown={e => { if (e.key === "Enter") handleParse() }}
           />
           <button
@@ -247,14 +247,14 @@ export default function AddBookPage() {
         {parseError && <p className="mt-1.5 text-[12px] text-[#d83931]">{parseError}</p>}
       </section>
 
-      <div className="border-t border-[rgba(0,0,0,0.06)] mb-6" />
+      <div className="border-t border-border mb-6" />
 
       {/* Section 2: Book Info */}
       <section className="mb-6">
         <div className="flex gap-4">
           {/* Cover */}
           <div
-            className="relative w-[120px] h-[168px] shrink-0 rounded-lg overflow-hidden border border-[rgba(0,0,0,0.1)] bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] group cursor-pointer"
+            className="relative w-[120px] h-[168px] shrink-0 rounded-lg overflow-hidden border border-border bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] dark:bg-[linear-gradient(135deg,#2a2a2a,#1f1f1f)] group cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
             {displayCover && !imgError ? (
@@ -282,25 +282,25 @@ export default function AddBookPage() {
           {/* Fields */}
           <div className="flex-1 space-y-3">
             <div>
-              <label className="text-[13px] font-medium text-[rgba(0,0,0,0.95)] block mb-1">
-                书名 <span className="text-[#a39e98]">*</span>
+              <label className="text-[13px] font-medium text-foreground block mb-1">
+                书名 <span className="text-muted-foreground">*</span>
               </label>
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="输入书名"
-                className="w-full h-9 px-3 border border-[rgba(0,0,0,0.1)] rounded-md text-[13px] outline-none focus:border-[#0075de]"
+                className="w-full h-9 px-3 border border-border rounded-md text-[13px] outline-none focus:border-[#0075de]"
               />
             </div>
             <div>
-              <label className="text-[13px] font-medium text-[rgba(0,0,0,0.95)] block mb-1">
+              <label className="text-[13px] font-medium text-foreground block mb-1">
                 作者
               </label>
               <input
                 value={authorName}
                 onChange={e => setAuthorName(e.target.value)}
                 placeholder="输入作者名"
-                className="w-full h-9 px-3 border border-[rgba(0,0,0,0.1)] rounded-md text-[13px] outline-none focus:border-[#0075de]"
+                className="w-full h-9 px-3 border border-border rounded-md text-[13px] outline-none focus:border-[#0075de]"
               />
             </div>
           </div>
@@ -309,48 +309,48 @@ export default function AddBookPage() {
         {/* Metadata row */}
         <div className="mt-4 grid grid-cols-4 gap-3">
           <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">出版社</label>
+            <label className="text-[12px] text-muted-foreground block mb-1">出版社</label>
             <input
               value={publisher}
               onChange={e => setPublisher(e.target.value)}
               placeholder="出版社"
-              className="w-full h-8 px-2.5 border border-[rgba(0,0,0,0.1)] rounded-md text-[12px] outline-none focus:border-[#0075de]"
+              className="w-full h-8 px-2.5 border border-border rounded-md text-[12px] outline-none focus:border-[#0075de]"
             />
           </div>
           <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">出版日期</label>
+            <label className="text-[12px] text-muted-foreground block mb-1">出版日期</label>
             <input
               value={publishDate}
               onChange={e => setPublishDate(e.target.value)}
               placeholder="2024-01"
-              className="w-full h-8 px-2.5 border border-[rgba(0,0,0,0.1)] rounded-md text-[12px] outline-none focus:border-[#0075de]"
+              className="w-full h-8 px-2.5 border border-border rounded-md text-[12px] outline-none focus:border-[#0075de]"
             />
           </div>
           <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">ISBN</label>
+            <label className="text-[12px] text-muted-foreground block mb-1">ISBN</label>
             <input
               value={isbn}
               onChange={e => setIsbn(e.target.value)}
               placeholder="978-..."
-              className="w-full h-8 px-2.5 border border-[rgba(0,0,0,0.1)] rounded-md text-[12px] outline-none focus:border-[#0075de]"
+              className="w-full h-8 px-2.5 border border-border rounded-md text-[12px] outline-none focus:border-[#0075de]"
             />
           </div>
           <div>
-            <label className="text-[12px] text-[#615d59] block mb-1">豆瓣评分</label>
-            <div className="h-8 px-2.5 flex items-center text-[12px] text-[rgba(0,0,0,0.65)]">
-              {doubanRating || <span className="text-[#c5bfb8]">—</span>}
+            <label className="text-[12px] text-muted-foreground block mb-1">豆瓣评分</label>
+            <div className="h-8 px-2.5 flex items-center text-[12px] text-foreground/70">
+              {doubanRating || <span className="text-muted-foreground/40">—</span>}
             </div>
           </div>
         </div>
       </section>
 
-      <div className="border-t border-[rgba(0,0,0,0.06)] mb-6" />
+      <div className="border-t border-border mb-6" />
 
       {/* Section 3: TOC */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <label className="text-[13px] font-medium text-[rgba(0,0,0,0.95)]">
-            目录 <span className="text-[#9b958e] text-[12px] font-normal">(可选)</span>
+          <label className="text-[13px] font-medium text-foreground">
+            目录 <span className="text-muted-foreground text-[12px] font-normal">(可选)</span>
           </label>
           {!tocLoading && (
             <button
@@ -360,7 +360,7 @@ export default function AddBookPage() {
                 }
               }}
               disabled={!tocRawText.trim()}
-              className="text-[12px] font-semibold text-[#0075de] hover:text-[#005bab] disabled:text-[#c5bfb8] disabled:cursor-not-allowed cursor-pointer"
+              className="text-[12px] font-semibold text-[#0075de] hover:text-[#005bab] disabled:text-muted-foreground/40 disabled:cursor-not-allowed cursor-pointer"
             >
               ✨ AI 整理
             </button>
@@ -368,7 +368,7 @@ export default function AddBookPage() {
         </div>
 
         {tocLoading && (
-          <div className="flex items-center gap-2 py-8 justify-center text-[13px] text-[#615d59]">
+          <div className="flex items-center gap-2 py-8 justify-center text-[13px] text-muted-foreground">
             <div className="w-4 h-4 border-2 border-[#0075de] border-t-transparent rounded-full animate-spin" />
             AI 整理中...
           </div>
@@ -388,10 +388,10 @@ export default function AddBookPage() {
       </section>
 
       {/* Bottom actions */}
-      <div className="flex items-center justify-end gap-3 border-t border-[rgba(0,0,0,0.06)] pt-5">
+      <div className="flex items-center justify-end gap-3 border-t border-border pt-5">
         <Link
           href="/bookshelf"
-          className="h-9 px-4 inline-flex items-center justify-center text-[13px] font-semibold text-[#615d59] hover:bg-[#f6f5f4] rounded-md transition-colors"
+          className="h-9 px-4 inline-flex items-center justify-center text-[13px] font-semibold text-muted-foreground hover:bg-muted rounded-md transition-colors"
         >
           取消
         </Link>

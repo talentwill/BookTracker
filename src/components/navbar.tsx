@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
@@ -16,6 +17,20 @@ export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useAuth()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [dropdownOpen])
 
   async function handleLogout() {
     const supabase = createClient()
@@ -30,20 +45,20 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[rgba(0,0,0,0.1)] bg-white">
+    <nav className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="flex items-center justify-center w-7 h-7 rounded bg-[#0075de]">
             <span className="text-white font-bold text-sm leading-none">B</span>
           </div>
-          <span className="text-[rgba(0,0,0,0.95)] font-semibold text-[15px]">
+          <span className="text-foreground font-semibold text-[15px]">
             BookTracker
           </span>
         </Link>
 
         {/* Tab Switcher */}
-        <div className="bg-[#f6f5f4] rounded-md p-0.5 flex items-center gap-0.5">
+        <div className="bg-muted rounded-md p-0.5 flex items-center gap-0.5">
           {tabs.map((tab) => (
             <Link
               key={tab.href}
@@ -51,7 +66,7 @@ export function Navbar() {
               className={
                 isActiveTab(tab.href)
                   ? "bg-[#0075de] text-white font-semibold rounded px-3 py-1 text-[13px] transition-colors"
-                  : "text-[#615d59] rounded px-3 py-1 text-[13px] transition-colors hover:text-[rgba(0,0,0,0.95)]"
+                  : "text-muted-foreground rounded px-3 py-1 text-[13px] transition-colors hover:text-foreground"
               }
             >
               {tab.label}
@@ -61,25 +76,40 @@ export function Navbar() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/settings"
-            className="flex items-center justify-center w-8 h-8 rounded-md text-[#615d59] hover:text-[rgba(0,0,0,0.95)] hover:bg-[#f6f5f4] transition-colors"
-            title="设置"
-          >
-            ⚙️
-          </Link>
           {user ? (
-            <>
-              <span className="text-[13px] text-[#615d59] max-w-[160px] truncate">
-                {user.email}
-              </span>
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={handleLogout}
-                className="inline-flex items-center justify-center h-8 px-3 text-[13px] font-medium text-[#615d59] hover:text-[rgba(0,0,0,0.95)] hover:bg-[#f6f5f4] rounded-md transition-colors"
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0075de] text-white text-[13px] font-semibold hover:opacity-90 transition-opacity"
+                title="用户菜单"
               >
-                退出
+                {user.email?.charAt(0).toUpperCase() || "U"}
               </button>
-            </>
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 w-56 bg-popover text-popover-foreground rounded-lg shadow-lg border border-border py-1 z-50">
+                  <div className="px-4 py-2.5 text-[13px] text-muted-foreground truncate">
+                    {user.email}
+                  </div>
+                  <div className="border-t border-border" />
+                  <Link
+                    href="/settings"
+                    onClick={() => setDropdownOpen(false)}
+                    className="block px-4 py-2 text-[13px] text-foreground hover:bg-accent transition-colors"
+                  >
+                    设置
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false)
+                      handleLogout()
+                    }}
+                    className="block w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-500/10 transition-colors"
+                  >
+                    退出登录
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               href="/login"

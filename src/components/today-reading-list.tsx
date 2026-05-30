@@ -58,7 +58,7 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
   }
 
   if (items.length === 0) {
-    return <div className="py-8 text-center text-sm text-[#a39e98]">今天没有排期阅读的章节</div>
+    return <div className="py-8 text-center text-sm text-muted-foreground">今天没有排期阅读的章节</div>
   }
 
   return (
@@ -69,34 +69,34 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
           const done = bookItems.filter(i => i.status.checked)
           const pending = bookItems.filter(i => !i.status.checked)
           return (
-            <div key={book.id} className="rounded-lg border border-[rgba(0,0,0,0.08)]">
-              <div className="flex items-center gap-1.5 border-b border-[rgba(0,0,0,0.05)] px-3.5 py-2">
-                <Link href={`/books/${book.id}`} className="text-[13px] font-semibold text-[rgba(0,0,0,0.95)] hover:underline">
+            <div key={book.id} className="rounded-lg border border-border">
+              <div className="flex items-center gap-1.5 border-b border-border px-3.5 py-2">
+                <Link href={`/books/${book.id}`} className="text-[13px] font-semibold text-foreground hover:underline">
                   《{book.title}》
                 </Link>
                 {author && (
-                  <Link href={`/authors/${author.id}`} className="text-[12px] text-[#615d59] hover:underline">
+                  <Link href={`/authors/${author.id}`} className="text-[12px] text-muted-foreground hover:underline">
                     {author.name}
                   </Link>
                 )}
               </div>
               <div className="flex flex-col">
                 {pending.map(item => (
-                  <div key={item.tocItem.id} className="flex items-center gap-3 border-b border-[rgba(0,0,0,0.03)] px-3.5 py-2">
+                  <div key={item.tocItem.id} className="flex items-center gap-3 border-b border-border px-3.5 py-2">
                     <span className="text-sm text-[#097fe8]">○</span>
-                    <span className="flex-1 truncate text-[13px] text-[rgba(0,0,0,0.95)]">
+                    <span className="flex-1 truncate text-[13px] text-foreground">
                       {buildFullPath(item.tocItem, allTocItems)}
                     </span>
                     <div className="flex shrink-0 gap-1">
                       <button
                         onClick={() => onSchedule(item.tocItem.id, item.status.round_id, tomorrowStr)}
-                        className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]"
+                        className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent"
                       >
                         明天
                       </button>
                       <button
                         onClick={() => onSchedule(item.tocItem.id, item.status.round_id, nextWeekStr)}
-                        className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]"
+                        className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent"
                       >
                         下周
                       </button>
@@ -110,14 +110,14 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
                   </div>
                 ))}
                 {done.map(item => (
-                  <div key={item.tocItem.id} className="flex items-center gap-3 border-b border-[rgba(0,0,0,0.03)] px-3.5 py-2 opacity-50">
+                  <div key={item.tocItem.id} className="flex items-center gap-3 border-b border-border px-3.5 py-2 opacity-50">
                     <span className="text-sm text-[#1aae39]">✓</span>
-                    <span className="flex-1 truncate text-[13px] text-[#615d59] line-through">
+                    <span className="flex-1 truncate text-[13px] text-muted-foreground line-through">
                       {buildFullPath(item.tocItem, allTocItems)}
                     </span>
                     <button
                       onClick={() => onToggle(item.tocItem.id, item.status.round_id)}
-                      className="shrink-0 rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]"
+                      className="shrink-0 rounded bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] dark:text-[#4ade80] hover:bg-[#d0f0dd] dark:hover:bg-[#1aae39]/30"
                     >
                       撤销
                     </button>
