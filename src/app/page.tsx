@@ -12,9 +12,8 @@ import { BookCard } from "@/components/book-card"
 import { formatToday } from "@/lib/utils"
 import Link from "next/link"
 
-const supabase = createClient()
-
 export default function HomePage() {
+  const supabase = useMemo(() => createClient(), [])
   const { data: books } = useBooks()
   const toggleChapter = useToggleChapter()
   const scheduleChapter = useScheduleChapter()

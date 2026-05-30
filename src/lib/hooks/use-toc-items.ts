@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export function useTocItems(bookId: string) {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['toc-items', bookId],
     queryFn: async () => {
@@ -20,6 +19,7 @@ export function useTocItems(bookId: string) {
 }
 
 export function useReplaceBookToc() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, items }: { bookId: string; items: Array<{ title: string; indent: number; order: number }> }) => {

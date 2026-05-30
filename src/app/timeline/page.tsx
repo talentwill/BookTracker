@@ -7,8 +7,6 @@ import type { TocItem, ChapterStatus } from "@/lib/types"
 import { useBooks } from "@/lib/hooks/use-books"
 import { getCoverUrl } from "@/lib/supabase/storage"
 
-const supabase = createClient()
-
 interface DayGroup {
   dateKey: string
   dateLabel: string
@@ -61,6 +59,7 @@ function CoverThumb({ coverUrl, title }: { coverUrl?: string; title: string }) {
 }
 
 export default function TimelinePage() {
+  const supabase = useMemo(() => createClient(), [])
   const [selectedBookId, setSelectedBookId] = useState<string>("all")
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")

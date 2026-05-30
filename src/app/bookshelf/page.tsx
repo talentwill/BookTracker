@@ -9,11 +9,10 @@ import { useBooks } from "@/lib/hooks/use-books"
 import { BookCard } from "@/components/book-card"
 import { formatToday } from "@/lib/utils"
 
-const supabase = createClient()
-
 type Filter = "all" | "reading" | "done" | "today" | "unfinished"
 
 export default function BookshelfPage() {
+  const supabase = useMemo(() => createClient(), [])
   const [filter, setFilter] = useState<Filter>("all")
   const { data: books } = useBooks()
   const today = formatToday()

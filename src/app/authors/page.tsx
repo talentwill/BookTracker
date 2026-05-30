@@ -8,9 +8,8 @@ import { useAuthors } from "@/lib/hooks/use-authors"
 import { useBooks } from "@/lib/hooks/use-books"
 import { AuthorCard } from "@/components/author-card"
 
-const supabase = createClient()
-
 export default function AuthorsPage() {
+  const supabase = useMemo(() => createClient(), [])
   const { data: authors } = useAuthors()
   const { data: books } = useBooks()
 

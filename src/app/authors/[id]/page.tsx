@@ -12,9 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-const supabase = createClient()
-
 export default function AuthorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const supabase = useMemo(() => createClient(), [])
   const { id } = use(params)
   const { data: author } = useAuthor(id)
   const { data: books } = useBooks()

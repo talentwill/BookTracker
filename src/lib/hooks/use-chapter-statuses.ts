@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export function useChapterStatuses(roundId: string) {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['chapter-statuses', roundId],
     queryFn: async () => {
@@ -19,6 +18,7 @@ export function useChapterStatuses(roundId: string) {
 }
 
 export function useAllChapterStatuses(bookId: string) {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['chapter-statuses', 'all', bookId],
     queryFn: async () => {
@@ -41,6 +41,7 @@ export function useAllChapterStatuses(bookId: string) {
 }
 
 export function useToggleChapter() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ tocItemId, roundId, checked, checkedAt }: { tocItemId: string; roundId: string; checked: boolean; checkedAt?: string }) => {
@@ -60,6 +61,7 @@ export function useToggleChapter() {
 }
 
 export function useScheduleChapter() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ tocItemId, roundId, date }: { tocItemId: string; roundId: string; date: string | null }) => {

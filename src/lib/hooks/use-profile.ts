@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export function useProfile() {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
@@ -22,6 +21,7 @@ export function useProfile() {
 }
 
 export function useUpdateProfile() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (updates: {

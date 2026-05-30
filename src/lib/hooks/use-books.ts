@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export function useBooks() {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['books'],
     queryFn: async () => {
@@ -18,6 +17,7 @@ export function useBooks() {
 }
 
 export function useBook(id: string) {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['books', id],
     queryFn: async () => {
@@ -34,6 +34,7 @@ export function useBook(id: string) {
 }
 
 export function useAddBook() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (params: {
@@ -62,6 +63,7 @@ export function useAddBook() {
 }
 
 export function useDeleteBook() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (bookId: string) => {
@@ -76,6 +78,7 @@ export function useDeleteBook() {
 }
 
 export function useUpdateBookStatus() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, status }: { bookId: string; status: string }) => {
@@ -96,6 +99,7 @@ export function useUpdateBookStatus() {
 }
 
 export function useUpdateBookDate() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, field, value }: { bookId: string; field: 'started_reading_at' | 'finished_reading_at'; value: string | null }) => {
@@ -112,6 +116,7 @@ export function useUpdateBookDate() {
 }
 
 export function useUpdateBookTitle() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, title }: { bookId: string; title: string }) => {
@@ -123,6 +128,7 @@ export function useUpdateBookTitle() {
 }
 
 export function useUpdateBookAuthor() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, authorName }: { bookId: string; authorName: string }) => {
@@ -154,6 +160,7 @@ export function useUpdateBookAuthor() {
 }
 
 export function useUpdateBookCover() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, coverUrl }: { bookId: string; coverUrl: string }) => {

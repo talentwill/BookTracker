@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
-const supabase = createClient()
-
 export function useTags() {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['tags'],
     queryFn: async () => {
@@ -18,6 +17,7 @@ export function useTags() {
 }
 
 export function useBookTags(bookId: string) {
+  const supabase = createClient()
   return useQuery({
     queryKey: ['book-tags', bookId],
     queryFn: async () => {
@@ -33,6 +33,7 @@ export function useBookTags(bookId: string) {
 }
 
 export function useAddBookTag() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, tagName }: { bookId: string; tagName: string }) => {
@@ -66,6 +67,7 @@ export function useAddBookTag() {
 }
 
 export function useRemoveBookTag() {
+  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, tagId }: { bookId: string; tagId: string }) => {
