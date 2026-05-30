@@ -1,15 +1,15 @@
 "use client"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { AiSettings } from "@/components/settings/ai-settings"
-import { DisplaySettings } from "@/components/settings/display-settings"
-import { AccountSettings } from "@/components/settings/account-settings"
-import { DataSettings } from "@/components/settings/data-settings"
+import { AiSettings } from "./ai-settings"
+import { DisplaySettings } from "./display-settings"
+import { AccountSettings } from "./account-settings"
+import { DataSettings } from "./data-settings"
 
 export function SettingsTabs() {
   return (
-    <Tabs defaultValue="ai">
-      <TabsList>
+    <Tabs defaultValue="ai" className="w-full">
+      <TabsList className="mb-6">
         <TabsTrigger value="ai">AI 服务</TabsTrigger>
         <TabsTrigger value="display">显示偏好</TabsTrigger>
         <TabsTrigger value="account">账户</TabsTrigger>
