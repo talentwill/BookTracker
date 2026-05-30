@@ -28,6 +28,9 @@ export function useUpdateProfile() {
       ai_api_key?: string
       ai_base_url?: string
       ai_model?: string
+      theme?: string
+      language?: string
+      books_per_page?: number
     }) => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
