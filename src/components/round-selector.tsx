@@ -24,13 +24,13 @@ export function RoundSelector({ rounds, selectedRound, onSelectRound, onNewRound
           第 {selectedRound.round_number} 轮 ▾
         </button>
         {open && (
-          <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] rounded-lg border border-[rgba(0,0,0,0.1)] bg-white py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] rounded-lg border border-border bg-card py-1 shadow-lg">
             {sorted.map(round => (
               <button
                 key={round.id}
                 onClick={() => { onSelectRound(round); setOpen(false) }}
-                className={`flex w-full items-center justify-between px-3 py-1.5 text-xs hover:bg-[rgba(0,0,0,0.05)] ${
-                  round.id === selectedRound.id ? "font-semibold text-[#097fe8]" : "text-[rgba(0,0,0,0.95)]"
+                className={`flex w-full items-center justify-between px-3 py-1.5 text-xs hover:bg-accent ${
+                  round.id === selectedRound.id ? "font-semibold text-[#097fe8]" : "text-foreground"
                 }`}
               >
                 <span>第 {round.round_number} 轮</span>
@@ -39,10 +39,10 @@ export function RoundSelector({ rounds, selectedRound, onSelectRound, onNewRound
                 )}
               </button>
             ))}
-            <div className="border-t border-[rgba(0,0,0,0.05)]" />
+            <div className="border-t border-border" />
             <button
               onClick={() => { onNewRound(); setOpen(false) }}
-              className="flex w-full items-center px-3 py-1.5 text-xs font-medium text-[#097fe8] hover:bg-[rgba(0,0,0,0.05)]"
+              className="flex w-full items-center px-3 py-1.5 text-xs font-medium text-[#097fe8] hover:bg-accent"
             >
               + 开启新一轮
             </button>

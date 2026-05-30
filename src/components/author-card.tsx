@@ -27,22 +27,22 @@ export function AuthorCard({ author, books }: AuthorCardProps) {
 
   return (
     <Link href={`/authors/${author.id}`}>
-      <div className="flex cursor-pointer items-center gap-4 rounded-xl border border-[rgba(0,0,0,0.1)] px-5 py-4 transition-shadow hover:shadow-[rgba(0,0,0,0.02)_0px_2px_7px]">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[rgba(0,0,0,0.1)] bg-[#f6f5f4] text-xl">
+      <div className="flex cursor-pointer items-center gap-4 rounded-xl border border-border px-5 py-4 transition-shadow hover:shadow-lg">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-muted text-xl">
           {author.name[0]}
         </div>
         <div className="flex-1">
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-[15px] font-bold text-[rgba(0,0,0,0.95)]">{author.name}</span>
+            <span className="text-[15px] font-bold text-foreground">{author.name}</span>
             <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusLabel.bg} ${statusLabel.text}`}>
               {statusLabel.label}
             </span>
           </div>
-          <p className="text-xs text-[#615d59]">
+          <p className="text-xs text-muted-foreground">
             共 {totalCount} 本书 · {doneCount} 本完成 · {readingCount} 本在读
           </p>
         </div>
-        <span className="text-[#a39e98]">→</span>
+        <span className="text-muted-foreground">→</span>
       </div>
     </Link>
   )
