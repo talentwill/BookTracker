@@ -13,7 +13,6 @@ import { formatToday } from "@/lib/utils"
 import Link from "next/link"
 
 export default function HomePage() {
-  const supabase = useMemo(() => createClient(), [])
   const { data: books } = useBooks()
   const toggleChapter = useToggleChapter()
   const scheduleChapter = useScheduleChapter()
@@ -22,6 +21,7 @@ export default function HomePage() {
   const { data: allRounds } = useQuery<ReadingRound[]>({
     queryKey: ["reading-rounds", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("reading_rounds").select("*")
       if (error) throw error
       return (data ?? []) as ReadingRound[]
@@ -31,6 +31,7 @@ export default function HomePage() {
   const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
       return (data ?? []) as TocItem[]
@@ -40,6 +41,7 @@ export default function HomePage() {
   const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
       return (data ?? []) as ChapterStatus[]

@@ -59,7 +59,6 @@ function CoverThumb({ coverUrl, title }: { coverUrl?: string; title: string }) {
 }
 
 export default function TimelinePage() {
-  const supabase = useMemo(() => createClient(), [])
   const [selectedBookId, setSelectedBookId] = useState<string>("all")
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -71,6 +70,7 @@ export default function TimelinePage() {
   const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
       return (data ?? []) as TocItem[]
@@ -80,6 +80,7 @@ export default function TimelinePage() {
   const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
       return (data ?? []) as ChapterStatus[]

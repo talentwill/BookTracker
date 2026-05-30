@@ -12,7 +12,6 @@ import { formatToday } from "@/lib/utils"
 type Filter = "all" | "reading" | "done" | "today" | "unfinished"
 
 export default function BookshelfPage() {
-  const supabase = useMemo(() => createClient(), [])
   const [filter, setFilter] = useState<Filter>("all")
   const { data: books } = useBooks()
   const today = formatToday()
@@ -20,6 +19,7 @@ export default function BookshelfPage() {
   const { data: allRounds } = useQuery<ReadingRound[]>({
     queryKey: ["reading-rounds", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("reading_rounds").select("*")
       if (error) throw error
       return (data ?? []) as ReadingRound[]
@@ -29,6 +29,7 @@ export default function BookshelfPage() {
   const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
       return (data ?? []) as TocItem[]
@@ -38,6 +39,7 @@ export default function BookshelfPage() {
   const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
       return (data ?? []) as ChapterStatus[]

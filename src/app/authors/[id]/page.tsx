@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export default function AuthorDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const supabase = useMemo(() => createClient(), [])
   const { id } = use(params)
   const { data: author } = useAuthor(id)
   const { data: books } = useBooks()
@@ -24,6 +23,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   const { data: allRounds } = useQuery<ReadingRound[]>({
     queryKey: ["reading-rounds", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("reading_rounds").select("*")
       if (error) throw error
       return (data ?? []) as ReadingRound[]
@@ -33,6 +33,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   const { data: allTocItems } = useQuery<TocItem[]>({
     queryKey: ["toc-items", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("toc_items").select("*").order("sort_order")
       if (error) throw error
       return (data ?? []) as TocItem[]
@@ -42,6 +43,7 @@ export default function AuthorDetailPage({ params }: { params: Promise<{ id: str
   const { data: allStatuses } = useQuery<ChapterStatus[]>({
     queryKey: ["chapter-statuses", "all"],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase.from("chapter_statuses").select("*")
       if (error) throw error
       return (data ?? []) as ChapterStatus[]
