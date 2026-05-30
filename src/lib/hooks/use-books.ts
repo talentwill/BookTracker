@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 export function useBooks() {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['books'],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('books')
         .select('*, authors(*)')
@@ -17,10 +17,10 @@ export function useBooks() {
 }
 
 export function useBook(id: string) {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['books', id],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('books')
         .select('*, authors(*)')
@@ -34,7 +34,6 @@ export function useBook(id: string) {
 }
 
 export function useAddBook() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (params: {
@@ -43,6 +42,7 @@ export function useAddBook() {
       tocText: string
       meta?: Record<string, unknown>
     }) => {
+      const supabase = createClient()
       const { data, error } = await supabase.rpc('add_book', {
         p_title: params.title,
         p_author_name: params.authorName,
@@ -63,10 +63,10 @@ export function useAddBook() {
 }
 
 export function useDeleteBook() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (bookId: string) => {
+      const supabase = createClient()
       const { error } = await supabase.rpc('delete_book', { p_book_id: bookId })
       if (error) throw error
     },
@@ -78,10 +78,10 @@ export function useDeleteBook() {
 }
 
 export function useUpdateBookStatus() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, status }: { bookId: string; status: string }) => {
+      const supabase = createClient()
       const { error } = await supabase
         .from('books')
         .update({
@@ -99,10 +99,10 @@ export function useUpdateBookStatus() {
 }
 
 export function useUpdateBookDate() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, field, value }: { bookId: string; field: 'started_reading_at' | 'finished_reading_at'; value: string | null }) => {
+      const supabase = createClient()
       const { error } = await supabase
         .from('books')
         .update({ [field]: value })
@@ -116,10 +116,10 @@ export function useUpdateBookDate() {
 }
 
 export function useUpdateBookTitle() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, title }: { bookId: string; title: string }) => {
+      const supabase = createClient()
       const { error } = await supabase.from('books').update({ title }).eq('id', bookId)
       if (error) throw error
     },
@@ -128,10 +128,10 @@ export function useUpdateBookTitle() {
 }
 
 export function useUpdateBookAuthor() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, authorName }: { bookId: string; authorName: string }) => {
+      const supabase = createClient()
       const { data: existing } = await supabase
         .from('authors')
         .select('id')
@@ -160,10 +160,10 @@ export function useUpdateBookAuthor() {
 }
 
 export function useUpdateBookCover() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, coverUrl }: { bookId: string; coverUrl: string }) => {
+      const supabase = createClient()
       const { error } = await supabase.from('books').update({ cover_url: coverUrl }).eq('id', bookId)
       if (error) throw error
     },

@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 export function useReadingRounds(bookId: string) {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['reading-rounds', bookId],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('reading_rounds')
         .select('*')
@@ -19,10 +19,10 @@ export function useReadingRounds(bookId: string) {
 }
 
 export function useStartNewRound() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, inheritSchedule }: { bookId: string; inheritSchedule: boolean }) => {
+      const supabase = createClient()
       const { data, error } = await supabase.rpc('start_new_round', {
         p_book_id: bookId,
         p_inherit_schedule: inheritSchedule,

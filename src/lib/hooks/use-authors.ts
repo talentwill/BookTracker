@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 export function useAuthors() {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['authors'],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('authors')
         .select('*')
@@ -17,10 +17,10 @@ export function useAuthors() {
 }
 
 export function useAuthor(id: string) {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['authors', id],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('authors')
         .select('*')
@@ -34,10 +34,10 @@ export function useAuthor(id: string) {
 }
 
 export function useUpdateAuthor() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ authorId, updates }: { authorId: string; updates: { name?: string; note?: string } }) => {
+      const supabase = createClient()
       const { error } = await supabase.from('authors').update(updates).eq('id', authorId)
       if (error) throw error
     },

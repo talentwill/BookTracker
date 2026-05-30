@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 export function useTags() {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['tags'],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('tags')
         .select('*, book_tags(count)')
@@ -17,10 +17,10 @@ export function useTags() {
 }
 
 export function useBookTags(bookId: string) {
-  const supabase = createClient()
   return useQuery({
     queryKey: ['book-tags', bookId],
     queryFn: async () => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('book_tags')
         .select('tag_id, tags(*)')
@@ -33,10 +33,10 @@ export function useBookTags(bookId: string) {
 }
 
 export function useAddBookTag() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, tagName }: { bookId: string; tagName: string }) => {
+      const supabase = createClient()
       const { data: existing } = await supabase
         .from('tags')
         .select('id')
@@ -67,10 +67,10 @@ export function useAddBookTag() {
 }
 
 export function useRemoveBookTag() {
-  const supabase = createClient()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ bookId, tagId }: { bookId: string; tagId: string }) => {
+      const supabase = createClient()
       const { error } = await supabase
         .from('book_tags')
         .delete()
