@@ -4,7 +4,9 @@ create or replace function add_book(
   p_author_name text,
   p_toc_text text,
   p_meta jsonb default '{}'::jsonb
-) returns jsonb as $$
+) returns jsonb
+set search_path = public
+as $$
 declare
   v_author_id uuid;
   v_book_id uuid;
@@ -68,7 +70,9 @@ $$ language plpgsql security invoker;
 
 -- Delete a book and all related data (cascading via FK)
 create or replace function delete_book(p_book_id uuid)
-returns void as $$
+returns void
+set search_path = public
+as $$
 begin
   if not exists (select 1 from books where id = p_book_id and user_id = auth.uid()) then
     raise exception 'Not authorized';
@@ -81,7 +85,9 @@ $$ language plpgsql security invoker;
 create or replace function start_new_round(
   p_book_id uuid,
   p_inherit_schedule boolean default false
-) returns jsonb as $$
+) returns jsonb
+set search_path = public
+as $$
 declare
   v_new_round_id uuid;
   v_max_round_number int;
@@ -123,7 +129,9 @@ $$ language plpgsql security invoker;
 create or replace function replace_book_toc(
   p_book_id uuid,
   p_items jsonb
-) returns void as $$
+) returns void
+set search_path = public
+as $$
 declare
   v_item jsonb;
   v_parent_stack uuid[] := '{}';
@@ -172,7 +180,9 @@ $$ language plpgsql security invoker;
 
 -- Validate invite code
 create or replace function validate_and_use_invite_code(p_code text, p_user_id uuid)
-returns boolean as $$
+returns boolean
+set search_path = public
+as $$
 declare
   v_code_id uuid;
 begin
