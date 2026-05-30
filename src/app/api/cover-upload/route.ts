@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import sharp from 'sharp'
 
 export async function POST(request: NextRequest) {
   const { imageUrl, sourceKey } = await request.json()
@@ -46,23 +45,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Failed to fetch image: ${imageResponse.status}` }, { status: 502 })
     }
     const imageBuffer = await imageResponse.arrayBuffer()
-
-    // Compress: resize to max 400px width, JPEG 0.7 quality
-    const compressed = await sharp(Buffer.from(imageBuffer))
-      .resize({ width: 400, withoutEnlargement: true })
-      .jpeg({ quality: 70 })
-      .toBuffer()
+    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
 
     // Use service role key for storage operations (bypasses RLS)
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.SUPABASE_SECRET_KEY!
     )
-    const filePath = `${sanitizedKey}.jpg`
+    const ext = contentType.includes('png') ? 'png' : 'jpg'
+    const filePath = `${sanitizedKey}.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from('covers')
-      .upload(filePath, compressed, { upsert: true, contentType: 'image/jpeg' })
+      .upload(filePath, imageBuffer, { upsert: true, contentType })
 
     if (uploadError) {
       return NextResponse.json({ error: `Storage upload failed: ${uploadError.message}` }, { status: 500 })
