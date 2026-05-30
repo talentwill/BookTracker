@@ -78,14 +78,14 @@ function OutlineNode({
         {checked ? (
           <button
             onClick={() => onToggle(item.id)}
-            className="rounded bg-[#e6f9ee] px-3 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]"
+            className="rounded bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-3 py-0.5 text-[11px] font-semibold text-[#1aae39] dark:text-[#4ade80] hover:bg-[#d0f0dd] dark:hover:bg-[#1aae39]/30"
           >
             撤销
           </button>
         ) : (
           <button
             onClick={() => setDialogOpen(true)}
-            className="rounded bg-[#f2f9ff] px-3 py-0.5 text-[11px] font-semibold text-[#097fe8] hover:bg-[#0075de] hover:text-white"
+            className="rounded bg-[#f2f9ff] dark:bg-[#097fe8]/20 px-3 py-0.5 text-[11px] font-semibold text-[#097fe8] dark:text-[#5bb8f5] hover:bg-[#0075de] hover:text-white"
           >
             已读
           </button>

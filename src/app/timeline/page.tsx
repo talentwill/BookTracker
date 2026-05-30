@@ -40,14 +40,14 @@ function CoverThumb({ coverUrl, title }: { coverUrl?: string; title: string }) {
 
   if (!coverUrl || imgError) {
     return (
-      <div className="w-6 h-8 rounded-[3px] bg-[#fef3e0] flex items-center justify-center text-[12px] shrink-0">
+      <div className="w-6 h-8 rounded-[3px] bg-[#fef3e0] dark:bg-amber-900/30 flex items-center justify-center text-[12px] shrink-0">
         📘
       </div>
     )
   }
 
   return (
-    <div className="w-6 h-8 rounded-[3px] bg-[#fef3e0] shrink-0 overflow-hidden">
+    <div className="w-6 h-8 rounded-[3px] bg-[#fef3e0] dark:bg-amber-900/30 shrink-0 overflow-hidden">
       <img
         src={coverUrl.startsWith('http') ? coverUrl : getCoverUrl(coverUrl)}
         alt={title}

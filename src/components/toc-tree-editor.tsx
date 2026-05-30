@@ -455,7 +455,7 @@ export function TocTreeEditor({ items, onChange, bookId, title }: TocTreeEditorP
               </button>
               <button
                 onClick={() => enterImportMode("ai")}
-                className="bg-[#f2f9ff] text-[#097fe8] border border-[#b3ddf5] rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-[#e0f0ff]"
+                className="bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5] border border-[#b3ddf5] dark:border-[#097fe8]/30 rounded-md px-3 py-1 text-[12px] font-semibold cursor-pointer hover:bg-[#e0f0ff] dark:hover:bg-[#097fe8]/30"
               >
                 ✨ AI 整理
               </button>

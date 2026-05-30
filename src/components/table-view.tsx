@@ -38,10 +38,10 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, onUpda
 
   const filters: { key: Filter; label: string; color: string }[] = [
     { key: "all", label: "全部", color: "bg-[#0075de] text-white" },
-    { key: "today", label: "今天", color: "bg-[#f2f9ff] text-[#097fe8]" },
-    { key: "tomorrow", label: "明天", color: "bg-[#f2f9ff] text-[#097fe8]" },
-    { key: "unscheduled", label: "未排期", color: "bg-[#f2f9ff] text-[#097fe8]" },
-    { key: "done", label: "已完成", color: "bg-[#e6f9ee] text-[#1aae39]" },
+    { key: "today", label: "今天", color: "bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5]" },
+    { key: "tomorrow", label: "明天", color: "bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5]" },
+    { key: "unscheduled", label: "未排期", color: "bg-[#f2f9ff] dark:bg-[#097fe8]/20 text-[#097fe8] dark:text-[#5bb8f5]" },
+    { key: "done", label: "已完成", color: "bg-[#e6f9ee] dark:bg-[#1aae39]/20 text-[#1aae39] dark:text-[#4ade80]" },
   ]
 
   return (
@@ -102,10 +102,10 @@ function Row({
   const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth() + 1).padStart(2, "0")}-${String(nextWeek.getDate()).padStart(2, "0")}`
 
   const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
-    done: { bg: "bg-[#e6f9ee]", text: "text-[#1aae39]", label: "已完成" },
-    today: { bg: "bg-[#f2f9ff]", text: "text-[#097fe8]", label: "今天" },
+    done: { bg: "bg-[#e6f9ee] dark:bg-[#1aae39]/20", text: "text-[#1aae39] dark:text-[#4ade80]", label: "已完成" },
+    today: { bg: "bg-[#f2f9ff] dark:bg-[#097fe8]/20", text: "text-[#097fe8] dark:text-[#5bb8f5]", label: "今天" },
     tomorrow: { bg: "bg-[#fff8ed]", text: "text-[#dd5b00]", label: "明天" },
-    scheduled: { bg: "bg-[#f2f9ff]", text: "text-[#097fe8]", label: "已排期" },
+    scheduled: { bg: "bg-[#f2f9ff] dark:bg-[#097fe8]/20", text: "text-[#097fe8] dark:text-[#5bb8f5]", label: "已排期" },
     unscheduled: { bg: "bg-muted", text: "text-muted-foreground", label: "未排期" },
   }
 
@@ -156,7 +156,7 @@ function Row({
         </span>
         <span className="flex justify-center gap-1">
           {isDone ? (
-            <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]">撤销</button>
+            <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] dark:text-[#4ade80] hover:bg-[#d0f0dd] dark:hover:bg-[#1aae39]/30">撤销</button>
           ) : (
             <>
               <button onClick={() => onSchedule(item.id, today)} className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent">今天</button>

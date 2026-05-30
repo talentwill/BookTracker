@@ -22,8 +22,8 @@ export function AuthorCard({ author, books }: AuthorCardProps) {
   const readingCount = totalCount - doneCount
 
   const statusLabel = doneCount > 0
-    ? { bg: "bg-[#e6f9ee]", text: "text-[#1aae39]", label: `${doneCount}本已读完` }
-    : { bg: "bg-[#f2f9ff]", text: "text-[#097fe8]", label: "在读" }
+    ? { bg: "bg-[#e6f9ee] dark:bg-[#1aae39]/20", text: "text-[#1aae39] dark:text-[#4ade80]", label: `${doneCount}本已读完` }
+    : { bg: "bg-[#f2f9ff] dark:bg-[#097fe8]/20", text: "text-[#097fe8] dark:text-[#5bb8f5]", label: "在读" }
 
   return (
     <Link href={`/authors/${author.id}`}>

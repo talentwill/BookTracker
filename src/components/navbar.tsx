@@ -45,20 +45,20 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-[rgba(0,0,0,0.1)] bg-white">
+    <nav className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-2.5">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="flex items-center justify-center w-7 h-7 rounded bg-[#0075de]">
             <span className="text-white font-bold text-sm leading-none">B</span>
           </div>
-          <span className="text-[rgba(0,0,0,0.95)] font-semibold text-[15px]">
+          <span className="text-foreground font-semibold text-[15px]">
             BookTracker
           </span>
         </Link>
 
         {/* Tab Switcher */}
-        <div className="bg-[#f6f5f4] rounded-md p-0.5 flex items-center gap-0.5">
+        <div className="bg-muted rounded-md p-0.5 flex items-center gap-0.5">
           {tabs.map((tab) => (
             <Link
               key={tab.href}
@@ -66,7 +66,7 @@ export function Navbar() {
               className={
                 isActiveTab(tab.href)
                   ? "bg-[#0075de] text-white font-semibold rounded px-3 py-1 text-[13px] transition-colors"
-                  : "text-[#615d59] rounded px-3 py-1 text-[13px] transition-colors hover:text-[rgba(0,0,0,0.95)]"
+                  : "text-muted-foreground rounded px-3 py-1 text-[13px] transition-colors hover:text-foreground"
               }
             >
               {tab.label}
@@ -86,15 +86,15 @@ export function Navbar() {
                 {user.email?.charAt(0).toUpperCase()}
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-lg shadow-lg border border-[rgba(0,0,0,0.1)] py-1 z-50">
-                  <div className="px-4 py-2.5 text-[13px] text-[#615d59] truncate">
+                <div className="absolute right-0 top-full mt-1 w-56 bg-popover text-popover-foreground rounded-lg shadow-lg border border-border py-1 z-50">
+                  <div className="px-4 py-2.5 text-[13px] text-muted-foreground truncate">
                     {user.email}
                   </div>
-                  <div className="border-t border-[rgba(0,0,0,0.08)]" />
+                  <div className="border-t border-border" />
                   <Link
                     href="/settings"
                     onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-[13px] text-[rgba(0,0,0,0.95)] hover:bg-[#f6f5f4] transition-colors"
+                    className="block px-4 py-2 text-[13px] text-foreground hover:bg-accent transition-colors"
                   >
                     设置
                   </Link>
@@ -103,7 +103,7 @@ export function Navbar() {
                       setDropdownOpen(false)
                       handleLogout()
                     }}
-                    className="block w-full text-left px-4 py-2 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
+                    className="block w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-500/10 transition-colors"
                   >
                     退出登录
                   </button>

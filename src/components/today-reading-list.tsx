@@ -117,7 +117,7 @@ export function TodayReadingList({ items, authors, allTocItems, onToggle, onSche
                     </span>
                     <button
                       onClick={() => onToggle(item.tocItem.id, item.status.round_id)}
-                      className="shrink-0 rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]"
+                      className="shrink-0 rounded bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] dark:text-[#4ade80] hover:bg-[#d0f0dd] dark:hover:bg-[#1aae39]/30"
                     >
                       撤销
                     </button>

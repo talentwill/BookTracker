@@ -26,7 +26,7 @@ export function NewRoundDialog({ open, onOpenChange, round_number, onConfirm }: 
             <button
               onClick={() => setInherit(true)}
               className={`rounded-lg border p-3 text-left transition-colors ${
-                inherit ? "border-[#0075de] bg-[#f2f9ff]" : "border-border"
+                inherit ? "border-[#0075de] bg-[#f2f9ff] dark:bg-[#0075de]/15" : "border-border"
               }`}
             >
               <div className="text-sm font-semibold text-foreground">继承排期</div>
@@ -35,7 +35,7 @@ export function NewRoundDialog({ open, onOpenChange, round_number, onConfirm }: 
             <button
               onClick={() => setInherit(false)}
               className={`rounded-lg border p-3 text-left transition-colors ${
-                !inherit ? "border-[#0075de] bg-[#f2f9ff]" : "border-border"
+                !inherit ? "border-[#0075de] bg-[#f2f9ff] dark:bg-[#0075de]/15" : "border-border"
               }`}
             >
               <div className="text-sm font-semibold text-foreground">清空重来</div>

@@ -64,7 +64,7 @@ export function TocImportZone({ bookId, onImport }: TocImportZoneProps) {
   }
 
   return (
-    <div className="border border-[#f5d6a3] rounded-lg bg-[#fef3e0] mb-3 overflow-hidden">
+    <div className="border border-[#f5d6a3] dark:border-amber-700 rounded-lg bg-[#fef3e0] dark:bg-amber-900/20 mb-3 overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between px-3 py-2 cursor-pointer"

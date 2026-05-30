@@ -6,8 +6,8 @@ interface StatCardProps {
 }
 
 const variants = {
-  blue: "bg-[#f2f9ff] border-[rgba(0,117,222,0.1)]",
-  green: "bg-[#e6f9ee] border-[rgba(26,174,57,0.15)]",
+  blue: "bg-[#f2f9ff] border-[rgba(0,117,222,0.1)] dark:bg-[#097fe8]/10 dark:border-[#097fe8]/20",
+  green: "bg-[#e6f9ee] border-[rgba(26,174,57,0.15)] dark:bg-[#1aae39]/10 dark:border-[#1aae39]/20",
   gray: "bg-muted border-border",
 }
 

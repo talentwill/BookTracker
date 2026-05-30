@@ -27,13 +27,10 @@ export function DisplaySettings() {
   }
 
   return (
-    <div className="px-6 py-5 max-w-xl">
-      <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)] mb-1">显示设置</h1>
-      <p className="text-[13px] text-[#9b958e] mb-6">主题与分页配置</p>
-
+    <div className="space-y-6">
       {/* Theme */}
-      <div className="mb-6">
-        <label className="text-[13px] font-semibold text-[rgba(0,0,0,0.65)] block mb-2">主题</label>
+      <div>
+        <label className="text-[13px] font-semibold text-muted-foreground block mb-2">主题</label>
         <div className="flex gap-2">
           {themes.map(t => (
             <button
@@ -41,8 +38,8 @@ export function DisplaySettings() {
               onClick={() => handleThemeChange(t.value)}
               className={`flex-1 py-2 px-3 rounded-lg text-[13px] font-semibold cursor-pointer border transition-colors ${
                 theme === t.value
-                  ? "border-[#0075de] bg-[#f2f9ff] text-[#0075de]"
-                  : "border-[rgba(0,0,0,0.15)] bg-white text-[#615d59] hover:border-[rgba(0,0,0,0.3)]"
+                  ? "border-[#0075de] bg-[#f2f9ff] dark:bg-[#0075de]/15 text-[#0075de] dark:text-[#5bb8f5]"
+                  : "border-input bg-background text-muted-foreground hover:border-foreground/30"
               }`}
             >
               {t.label}
@@ -51,20 +48,20 @@ export function DisplaySettings() {
         </div>
       </div>
 
-      <div className="border-t border-[rgba(0,0,0,0.06)] mb-5" />
+      <div className="border-t border-border" />
 
       {/* Books per page */}
-      <div className="mb-6">
-        <label className="text-[13px] font-semibold text-[rgba(0,0,0,0.65)] block mb-2">每页显示数量</label>
+      <div>
+        <label className="text-[13px] font-semibold text-muted-foreground block mb-2">每页显示数量</label>
         <input
           type="number"
           min={10}
           max={100}
           defaultValue={profile?.books_per_page ?? 20}
           onChange={handleBooksPerPageChange}
-          className="w-24 px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] outline-none focus:border-[#0075de] bg-white"
+          className="w-24 px-3 py-1.5 border border-input rounded-md text-[13px] outline-none focus:border-[#0075de] bg-background"
         />
-        <span className="text-[11px] text-[#9b958e] mt-1 block">范围 10-100</span>
+        <span className="text-[11px] text-muted-foreground mt-1 block">范围 10-100</span>
       </div>
     </div>
   )

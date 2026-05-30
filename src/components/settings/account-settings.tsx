@@ -65,24 +65,24 @@ export function AccountSettings() {
     <div className="space-y-6">
       {/* Change Password */}
       <div>
-        <h3 className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)] mb-4">修改密码</h3>
+        <h3 className="text-[14px] font-semibold text-foreground mb-4">修改密码</h3>
         <div className="space-y-3">
           <input
             type="password"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
             placeholder="新密码"
-            className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] outline-none focus:border-[#0075de] bg-white"
+            className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] outline-none focus:border-[#0075de] bg-background"
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
             placeholder="确认新密码"
-            className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] outline-none focus:border-[#0075de] bg-white"
+            className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] outline-none focus:border-[#0075de] bg-background"
           />
           {passwordMessage && (
-            <p className={passwordMessage.type === "success" ? "text-[12px] text-[#0a8a3e]" : "text-[12px] text-[#d44333]"}>
+            <p className={passwordMessage.type === "success" ? "text-[12px] text-green-600" : "text-[12px] text-red-500"}>
               {passwordMessage.text}
             </p>
           )}
@@ -96,21 +96,21 @@ export function AccountSettings() {
         </div>
       </div>
 
-      <div className="border-t border-[rgba(0,0,0,0.06)]" />
+      <div className="border-t border-border" />
 
       {/* Change Email */}
       <div>
-        <h3 className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)] mb-4">修改邮箱</h3>
+        <h3 className="text-[14px] font-semibold text-foreground mb-4">修改邮箱</h3>
         <div className="space-y-3">
           <input
             type="email"
             value={newEmail}
             onChange={e => setNewEmail(e.target.value)}
             placeholder="新邮箱地址"
-            className="w-full px-3 py-1.5 border border-[rgba(0,0,0,0.15)] rounded-md text-[13px] outline-none focus:border-[#0075de] bg-white"
+            className="w-full px-3 py-1.5 border border-input rounded-md text-[13px] outline-none focus:border-[#0075de] bg-background"
           />
           {emailMessage && (
-            <p className={emailMessage.type === "success" ? "text-[12px] text-[#0a8a3e]" : "text-[12px] text-[#d44333]"}>
+            <p className={emailMessage.type === "success" ? "text-[12px] text-green-600" : "text-[12px] text-red-500"}>
               {emailMessage.text}
             </p>
           )}

@@ -19,7 +19,7 @@ export function RoundSelector({ rounds, selectedRound, onSelectRound, onNewRound
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-1.5 rounded-full bg-[#f2f9ff] px-2.5 py-0.5 text-xs font-semibold text-[#097fe8] hover:bg-[#e0ecf8]"
+          className="flex items-center gap-1.5 rounded-full bg-[#f2f9ff] dark:bg-[#097fe8]/20 px-2.5 py-0.5 text-xs font-semibold text-[#097fe8] dark:text-[#5bb8f5] hover:bg-[#e0ecf8] dark:hover:bg-[#097fe8]/30"
         >
           第 {selectedRound.round_number} 轮 ▾
         </button>
@@ -35,7 +35,7 @@ export function RoundSelector({ rounds, selectedRound, onSelectRound, onNewRound
               >
                 <span>第 {round.round_number} 轮</span>
                 {round.status === "active" && (
-                  <span className="rounded-full bg-[#e6f9ee] px-1.5 py-0.5 text-[10px] font-semibold text-[#1aae39]">进行中</span>
+                  <span className="rounded-full bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-1.5 py-0.5 text-[10px] font-semibold text-[#1aae39] dark:text-[#4ade80]">进行中</span>
                 )}
               </button>
             ))}

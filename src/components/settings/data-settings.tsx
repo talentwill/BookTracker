@@ -97,14 +97,11 @@ export function DataSettings() {
   }
 
   return (
-    <div className="px-6 py-5 max-w-xl">
-      <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)] mb-1">数据管理</h1>
-      <p className="text-[13px] text-[#9b958e] mb-6">导出或导入你的书籍数据</p>
-
+    <div className="space-y-6">
       {/* Export */}
-      <div className="mb-6">
-        <h2 className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)] mb-1">导出数据</h2>
-        <p className="text-[13px] text-[#9b958e] mb-3">将所有书籍、章节和笔记导出为 JSON 文件</p>
+      <div>
+        <h2 className="text-[14px] font-semibold text-foreground mb-1">导出数据</h2>
+        <p className="text-[13px] text-muted-foreground mb-3">将所有书籍、章节和笔记导出为 JSON 文件</p>
         <button
           onClick={handleExport}
           disabled={exporting}
@@ -114,12 +111,12 @@ export function DataSettings() {
         </button>
       </div>
 
-      <div className="border-t border-[rgba(0,0,0,0.06)] mb-5" />
+      <div className="border-t border-border" />
 
       {/* Import */}
-      <div className="mb-6">
-        <h2 className="text-[14px] font-semibold text-[rgba(0,0,0,0.95)] mb-1">导入数据</h2>
-        <p className="text-[13px] text-[#9b958e] mb-3">从 JSON 文件导入数据（已有数据会被更新）</p>
+      <div>
+        <h2 className="text-[14px] font-semibold text-foreground mb-1">导入数据</h2>
+        <p className="text-[13px] text-muted-foreground mb-3">从 JSON 文件导入数据（已有数据会被更新）</p>
         <input
           ref={fileInputRef}
           type="file"
@@ -129,7 +126,7 @@ export function DataSettings() {
         />
         <label
           onClick={() => fileInputRef.current?.click()}
-          className="inline-flex items-center justify-center bg-white border border-[rgba(0,0,0,0.15)] rounded-lg px-5 py-2 text-[13px] font-semibold cursor-pointer hover:border-[rgba(0,0,0,0.3)] transition-colors"
+          className="inline-flex items-center justify-center bg-background border border-input rounded-lg px-5 py-2 text-[13px] font-semibold cursor-pointer hover:border-foreground/30 transition-colors"
         >
           {importing ? "导入中..." : "选择文件"}
         </label>
@@ -137,7 +134,7 @@ export function DataSettings() {
 
       {/* Message */}
       {message && (
-        <div className={`text-[13px] ${message.type === "success" ? "text-[#0a8a3e]" : "text-[#d44333]"}`}>
+        <div className={`text-[13px] ${message.type === "success" ? "text-green-600" : "text-red-500"}`}>
           {message.text}
         </div>
       )}
