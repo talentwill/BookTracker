@@ -34,9 +34,9 @@ export async function uploadCover(
 }
 
 export function getCoverUrl(storagePath: string): string {
-  const supabase = createClient()
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
-  return data.publicUrl
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl) return ''
+  return `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${storagePath}`
 }
 
 export async function uploadCoverFromUrl(

@@ -12,13 +12,13 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
+    const supabase = createClient()
     // Validate invite code first (check if code exists and is unused)
     const { data: codeData, error: codeError } = await supabase
       .from('invite_codes')
