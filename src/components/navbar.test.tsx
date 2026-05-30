@@ -2,7 +2,9 @@ import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@/test/test-utils"
 import userEvent from "@testing-library/user-event"
 
-const mockUseAuth = vi.hoisted(() => vi.fn(() => ({ user: null })))
+const mockUseAuth = vi.hoisted(() => vi.fn<(args?: unknown) => { user: { email?: string } | null }>())
+
+mockUseAuth.mockReturnValue({ user: null })
 const mockUsePathname = vi.hoisted(() => vi.fn(() => "/"))
 
 vi.mock("next/navigation", () => ({
