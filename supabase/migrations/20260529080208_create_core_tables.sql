@@ -1,5 +1,5 @@
 -- profiles
-create table profiles (
+create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   ai_provider text default 'claude',
   ai_api_key text,
@@ -9,7 +9,7 @@ create table profiles (
 );
 
 -- authors
-create table authors (
+create table if not exists authors (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
@@ -18,7 +18,7 @@ create table authors (
 );
 
 -- books
-create table books (
+create table if not exists books (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   author_id uuid not null references authors(id) on delete cascade,
@@ -37,7 +37,7 @@ create table books (
 );
 
 -- toc_items
-create table toc_items (
+create table if not exists toc_items (
   id uuid primary key default gen_random_uuid(),
   book_id uuid not null references books(id) on delete cascade,
   parent_id uuid references toc_items(id) on delete cascade,
@@ -46,7 +46,7 @@ create table toc_items (
 );
 
 -- reading_rounds
-create table reading_rounds (
+create table if not exists reading_rounds (
   id uuid primary key default gen_random_uuid(),
   book_id uuid not null references books(id) on delete cascade,
   round_number integer not null default 1,
@@ -55,7 +55,7 @@ create table reading_rounds (
 );
 
 -- chapter_statuses
-create table chapter_statuses (
+create table if not exists chapter_statuses (
   toc_item_id uuid not null references toc_items(id) on delete cascade,
   round_id uuid not null references reading_rounds(id) on delete cascade,
   checked boolean not null default false,
@@ -65,7 +65,7 @@ create table chapter_statuses (
 );
 
 -- tags
-create table tags (
+create table if not exists tags (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
@@ -74,14 +74,14 @@ create table tags (
 );
 
 -- book_tags
-create table book_tags (
+create table if not exists book_tags (
   book_id uuid not null references books(id) on delete cascade,
   tag_id uuid not null references tags(id) on delete cascade,
   primary key (book_id, tag_id)
 );
 
 -- cover_images
-create table cover_images (
+create table if not exists cover_images (
   id uuid primary key default gen_random_uuid(),
   source_key text not null unique,
   storage_path text not null,
@@ -89,7 +89,7 @@ create table cover_images (
 );
 
 -- invite_codes
-create table invite_codes (
+create table if not exists invite_codes (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   created_by uuid references auth.users(id),
@@ -100,10 +100,10 @@ create table invite_codes (
 );
 
 -- Indexes
-create index idx_books_user_id on books(user_id);
-create index idx_books_author_id on books(author_id);
-create index idx_toc_items_book_id on toc_items(book_id);
-create index idx_toc_items_parent_id on toc_items(parent_id);
-create index idx_reading_rounds_book_id on reading_rounds(book_id);
-create index idx_tags_user_id on tags(user_id);
-create index idx_chapter_statuses_round_id on chapter_statuses(round_id);
+create index if not exists idx_books_user_id on books(user_id);
+create index if not exists idx_books_author_id on books(author_id);
+create index if not exists idx_toc_items_book_id on toc_items(book_id);
+create index if not exists idx_toc_items_parent_id on toc_items(parent_id);
+create index if not exists idx_reading_rounds_book_id on reading_rounds(book_id);
+create index if not exists idx_tags_user_id on tags(user_id);
+create index if not exists idx_chapter_statuses_round_id on chapter_statuses(round_id);
