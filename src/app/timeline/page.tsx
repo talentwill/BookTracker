@@ -169,7 +169,7 @@ export default function TimelinePage() {
   return (
     <div className="px-6 py-6">
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[rgba(0,0,0,0.95)]">阅读时间线</h1>
+        <h1 className="text-xl font-bold text-foreground">阅读时间线</h1>
         <div className="relative" ref={searchRef}>
           <input
             ref={inputRef}
@@ -178,13 +178,13 @@ export default function TimelinePage() {
             onChange={e => setSearchQuery(e.target.value)}
             onFocus={() => { setSearchOpen(true); setSearchQuery("") }}
             placeholder="搜索书籍..."
-            className="border border-[rgba(0,0,0,0.15)] rounded-md px-3 py-1.5 text-[13px] text-[rgba(0,0,0,0.85)] bg-white outline-none focus:border-[#0075de] w-64"
+            className="border border-input rounded-md px-3 py-1.5 text-[13px] text-foreground/85 bg-background outline-none focus:border-[#0075de] w-64"
           />
           {searchOpen && (
-            <div className="absolute top-full right-0 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-[rgba(0,0,0,0.1)] rounded-lg shadow-lg z-10 py-1">
+            <div className="absolute top-full right-0 mt-1 w-full max-h-60 overflow-y-auto bg-card border border-border rounded-lg shadow-lg z-10 py-1">
               <button
                 onClick={() => { setSelectedBookId("all"); setSearchOpen(false); setSearchQuery("") }}
-                className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] ${selectedBookId === "all" ? "text-[#0075de] font-medium" : "text-[rgba(0,0,0,0.85)]"}`}
+                className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-muted ${selectedBookId === "all" ? "text-[#0075de] font-medium" : "text-foreground/85"}`}
               >
                 全部书籍
               </button>
@@ -192,13 +192,13 @@ export default function TimelinePage() {
                 <button
                   key={book.id}
                   onClick={() => { setSelectedBookId(book.id); setSearchOpen(false); setSearchQuery("") }}
-                  className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-[#f6f5f4] ${selectedBookId === book.id ? "text-[#0075de] font-medium" : "text-[rgba(0,0,0,0.85)]"}`}
+                  className={`w-full text-left px-3 py-1.5 text-[13px] hover:bg-muted ${selectedBookId === book.id ? "text-[#0075de] font-medium" : "text-foreground/85"}`}
                 >
                   {book.title}
                 </button>
               ))}
               {filteredBooks.length === 0 && (
-                <div className="px-3 py-2 text-[12px] text-[#9b958e]">无匹配书籍</div>
+                <div className="px-3 py-2 text-[12px] text-muted-foreground">无匹配书籍</div>
               )}
             </div>
           )}
@@ -206,7 +206,7 @@ export default function TimelinePage() {
       </div>
 
       {groups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[#615d59]">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <p className="text-[15px]">
             {selectedBookId === "all"
               ? "还没有阅读记录，开始你的阅读之旅吧"
@@ -220,16 +220,16 @@ export default function TimelinePage() {
               {/* Date node - hollow pill */}
               <div className="inline-flex items-center gap-2 border-2 border-[#0075de] rounded-[20px] px-3.5 py-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#0075de]" />
-                <span className="text-[13px] font-semibold text-[rgba(0,0,0,0.85)]">
+                <span className="text-[13px] font-semibold text-foreground/85">
                   {group.dateLabel} · {group.weekday}
                 </span>
-                <span className="text-[12px] text-[#615d59]">
+                <span className="text-[12px] text-muted-foreground">
                   {group.totalChapters}章
                 </span>
               </div>
 
               {/* Dashed branch line + book groups */}
-              <div className="ml-2.5 border-l-2 border-dashed border-[#d0cfcf] pl-5 mt-2 mb-2">
+              <div className="ml-2.5 border-l-2 border-dashed border-border pl-5 mt-2 mb-2">
                 {[...group.chaptersByBook.entries()].map(([bookId, chapters]) => {
                   const book = bookMap.get(bookId)
                   return (
@@ -237,7 +237,7 @@ export default function TimelinePage() {
                       {/* Book row */}
                       <div className="flex items-center gap-2 mb-1">
                         <CoverThumb coverUrl={book?.cover_url} title={book?.title ?? ""} />
-                        <span className="text-[13px] font-medium text-[rgba(0,0,0,0.85)]">
+                        <span className="text-[13px] font-medium text-foreground/85">
                           {book?.title ?? "未知"}
                         </span>
                       </div>
@@ -247,7 +247,7 @@ export default function TimelinePage() {
                         {chapters.map(ch => (
                           <span
                             key={ch.tocItemId}
-                            className="inline-flex items-center gap-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-[12px] px-2.5 py-1 text-[12px] text-[rgba(0,0,0,0.65)]"
+                            className="inline-flex items-center gap-1 bg-card border border-border rounded-[12px] px-2.5 py-1 text-[12px] text-foreground/70"
                           >
                             <span className="w-[5px] h-[5px] rounded-full bg-[#0075de]" />
                             {ch.chapterTitle}
@@ -261,7 +261,7 @@ export default function TimelinePage() {
 
               {/* Divider between days */}
               {groupIdx < groups.length - 1 && (
-                <div className="ml-2.5 w-0.5 h-4 border-l-2 border-dashed border-[#d0cfcf]" />
+                <div className="ml-2.5 w-0.5 h-4 border-l-2 border-dashed border-border" />
               )}
             </div>
           ))}

@@ -30,7 +30,7 @@ export default function BookEditPage({ params }: { params: Promise<{ id: string 
   if (!book) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
-        <p className="text-[#615d59]">书籍未找到</p>
+        <p className="text-muted-foreground">书籍未找到</p>
         <Link href="/bookshelf" className="text-[#0075de] hover:underline">返回书架</Link>
       </div>
     )
