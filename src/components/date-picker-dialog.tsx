@@ -96,7 +96,7 @@ function DatePickerContent({
               key={q.label}
               type="button"
               onClick={() => setQuickDate(q.offset)}
-              className="rounded-full bg-[rgba(0,0,0,0.05)] px-3 py-1 text-xs font-medium text-[#615d59] hover:bg-[#0075de] hover:text-white transition-colors"
+              className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-[#0075de] hover:text-white transition-colors"
             >
               {q.label}
             </button>
@@ -106,11 +106,11 @@ function DatePickerContent({
           type="date"
           value={date}
           onChange={e => setDate(e.target.value)}
-          className="w-full rounded-lg border border-[rgba(0,0,0,0.15)] bg-white px-3 py-2 text-sm text-[rgba(0,0,0,0.95)] outline-none focus:border-[#0075de] focus:ring-1 focus:ring-[#0075de]"
+          className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-[#0075de] focus:ring-1 focus:ring-[#0075de]"
           autoFocus
         />
       </div>
-      <div className="flex justify-end gap-2 border-t border-[rgba(0,0,0,0.1)] pt-3">
+      <div className="flex justify-end gap-2 border-t border-border pt-3">
         <Button variant="ghost" onClick={() => onOpenChange(false)}>
           取消
         </Button>

@@ -79,7 +79,7 @@ export function TocImportZone({ bookId, onImport }: TocImportZoneProps) {
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="粘贴从豆瓣、书籍目录页等获取的目录文本，AI 会自动整理成标准格式..."
-            className="w-full h-24 border border-[rgba(0,0,0,0.1)] rounded-md px-3 py-2 text-[12px] font-mono resize-none outline-none bg-white focus:border-[#0075de]"
+            className="w-full h-24 border border-border rounded-md px-3 py-2 text-[12px] font-mono resize-none outline-none bg-background focus:border-[#0075de]"
           />
 
           {error && (
@@ -87,7 +87,7 @@ export function TocImportZone({ bookId, onImport }: TocImportZoneProps) {
           )}
 
           <div className="flex items-center justify-between mt-2">
-            <span className="text-[11px] text-[#9b958e]">将替换当前目录内容</span>
+            <span className="text-[11px] text-muted-foreground">将替换当前目录内容</span>
             <button
               onClick={handleImport}
               disabled={loading || !text.trim()}

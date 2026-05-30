@@ -51,7 +51,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, onUpda
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium ${filter === f.key ? f.color : "bg-[rgba(0,0,0,0.05)] text-[#615d59]"}`}
+            className={`rounded-full px-3 py-1 text-xs font-medium ${filter === f.key ? f.color : "bg-muted text-muted-foreground"}`}
           >
             {f.label}
           </button>
@@ -59,7 +59,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, onUpda
         {rightAction && <div className="ml-auto">{rightAction}</div>}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.1)]">
+      <div className="overflow-hidden rounded-lg border border-border">
         {filteredRows.map(row => (
           <Row
             key={row.item.id}
@@ -74,7 +74,7 @@ export function TableView({ items, statuses, round, onSchedule, onToggle, onUpda
           />
         ))}
         {filteredRows.length === 0 && (
-          <div className="py-8 text-center text-sm text-[#a39e98]">没有匹配的章节</div>
+          <div className="py-8 text-center text-sm text-muted-foreground">没有匹配的章节</div>
         )}
       </div>
     </div>
@@ -106,7 +106,7 @@ function Row({
     today: { bg: "bg-[#f2f9ff]", text: "text-[#097fe8]", label: "今天" },
     tomorrow: { bg: "bg-[#fff8ed]", text: "text-[#dd5b00]", label: "明天" },
     scheduled: { bg: "bg-[#f2f9ff]", text: "text-[#097fe8]", label: "已排期" },
-    unscheduled: { bg: "bg-[rgba(0,0,0,0.05)]", text: "text-[#615d59]", label: "未排期" },
+    unscheduled: { bg: "bg-muted", text: "text-muted-foreground", label: "未排期" },
   }
 
   const badge = statusBadge[chapterStatus]
@@ -128,10 +128,10 @@ function Row({
   return (
     <>
       <div
-        className={`${gridClass} border-b border-[rgba(0,0,0,0.05)] ${isDone ? "opacity-50" : ""}`}
+        className={`${gridClass} border-b border-border ${isDone ? "opacity-50" : ""}`}
         style={gridStyle}
       >
-        <span className={`text-center text-sm ${isDone ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
+        <span className={`text-center text-sm ${isDone ? "text-[#1aae39]" : "text-muted-foreground"}`}>
           {isDone ? "✓" : "○"}
         </span>
         <span className={`truncate ${isDone ? "line-through" : ""} ${depth === 0 && !isDone ? "font-medium" : ""}`} style={{ paddingLeft: `${depth * 20}px` }}>
@@ -142,7 +142,7 @@ function Row({
             {badge.label}
           </span>
         </span>
-        <span className="text-center text-xs text-[#a39e98]">
+        <span className="text-center text-xs text-muted-foreground">
           {checkedDateStr ? (
             <button
               onClick={() => setDialogOpen(true)}
@@ -159,9 +159,9 @@ function Row({
             <button onClick={() => onToggle(item.id)} className="rounded bg-[#e6f9ee] px-2 py-0.5 text-[11px] font-semibold text-[#1aae39] hover:bg-[#d0f0dd]">撤销</button>
           ) : (
             <>
-              <button onClick={() => onSchedule(item.id, today)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">今天</button>
-              <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">明天</button>
-              <button onClick={() => onSchedule(item.id, nextWeekStr)} className="rounded bg-[rgba(0,0,0,0.05)] px-2 py-0.5 text-[11px] font-semibold text-[rgba(0,0,0,0.95)] hover:bg-[rgba(0,0,0,0.08)]">下周</button>
+              <button onClick={() => onSchedule(item.id, today)} className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent">今天</button>
+              <button onClick={() => onSchedule(item.id, tomorrowStr)} className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent">明天</button>
+              <button onClick={() => onSchedule(item.id, nextWeekStr)} className="rounded bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground hover:bg-accent">下周</button>
               <button onClick={() => setDialogOpen(true)} className="rounded bg-[#0075de] px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-[#005bab]">已读</button>
             </>
           )}

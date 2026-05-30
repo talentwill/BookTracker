@@ -60,17 +60,17 @@ function OutlineNode({
   return (
     <>
       <div
-        className="flex items-center gap-2 rounded px-2 py-0.5 hover:bg-[rgba(0,0,0,0.02)]"
+        className="flex items-center gap-2 rounded px-2 py-0.5 hover:bg-accent"
         style={{ paddingLeft: `${depth * 20 + 8}px` }}
       >
-        <span className={`text-sm ${checked ? "text-[#1aae39]" : "text-[#a39e98]"}`}>
+        <span className={`text-sm ${checked ? "text-[#1aae39]" : "text-muted-foreground"}`}>
           {checked ? "●" : "○"}
         </span>
         <span
           className={`flex-1 text-[13px] ${
             checked
-              ? "text-[rgba(0,0,0,0.5)] line-through"
-              : "text-[rgba(0,0,0,0.95)]"
+              ? "text-foreground/50 line-through"
+              : "text-foreground"
           }`}
         >
           {item.title}
