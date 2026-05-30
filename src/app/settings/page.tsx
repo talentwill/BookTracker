@@ -4,7 +4,15 @@ import { useProfile } from "@/lib/hooks/use-profile"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
 
 export default function SettingsPage() {
-  const { data: profile } = useProfile()
+  const { data: profile, isLoading } = useProfile()
+
+  if (isLoading) {
+    return (
+      <div className="px-6 py-5">
+        <p className="text-[13px] text-muted-foreground">加载中...</p>
+      </div>
+    )
+  }
 
   if (!profile) {
     return (

@@ -19,9 +19,9 @@ export function DisplaySettings() {
     updateProfile.mutate({ theme: value })
   }
 
-  function handleBooksPerPageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleBooksPerPageBlur(e: React.FocusEvent<HTMLInputElement>) {
     const raw = parseInt(e.target.value, 10)
-    if (isNaN(raw)) return
+    if (isNaN(raw) || raw === (profile?.books_per_page ?? 20)) return
     const clamped = Math.min(100, Math.max(10, raw))
     updateProfile.mutate({ books_per_page: clamped })
   }
@@ -57,8 +57,10 @@ export function DisplaySettings() {
           type="number"
           min={10}
           max={100}
+          key={profile?.books_per_page ?? 20}
           defaultValue={profile?.books_per_page ?? 20}
-          onChange={handleBooksPerPageChange}
+          onBlur={handleBooksPerPageBlur}
+          onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur() }}
           className="w-24 px-3 py-1.5 border border-input rounded-md text-[13px] outline-none focus:border-[#0075de] bg-background"
         />
         <span className="text-[11px] text-muted-foreground mt-1 block">范围 10-100</span>

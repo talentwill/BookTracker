@@ -83,7 +83,7 @@ export function Navbar() {
                 className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0075de] text-white text-[13px] font-semibold hover:opacity-90 transition-opacity"
                 title="用户菜单"
               >
-                {user.email?.charAt(0).toUpperCase()}
+                {user.email?.charAt(0).toUpperCase() || "U"}
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 top-full mt-1 w-56 bg-popover text-popover-foreground rounded-lg shadow-lg border border-border py-1 z-50">

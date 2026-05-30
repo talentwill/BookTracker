@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepare": "husky",
     "preview": "opennextjs-cloudflare build && wrangler dev",
     "deploy": "opennextjs-cloudflare build && wrangler deploy"
@@ -35,6 +37,9 @@
   "devDependencies": {
     "@opennextjs/cloudflare": "^1.19.11",
     "@tailwindcss/postcss": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.19.41",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -42,9 +47,11 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
     "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
     "lint-staged": "^17.0.5",
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
+    "vitest": "^4.1.7",
     "wrangler": "^4.95.0"
   },
   "packageManager": "pnpm@11.3.0+sha512.2c403d6594527287672b1f7056343a1f7c3634036a67ffabfcc2b3d7595d843768f8787148d1b57cf7956c90606bbd192857c363af19e96d2d0ec9ec5741d215",

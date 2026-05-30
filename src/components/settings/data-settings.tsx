@@ -19,21 +19,41 @@ export function DataSettings() {
     try {
       const supabase = createClient()
 
-      const [booksRes, chaptersRes, notesRes] = await Promise.all([
+      const [authorsRes, booksRes] = await Promise.all([
+        supabase.from("authors").select("*").eq("user_id", user.id),
         supabase.from("books").select("*").eq("user_id", user.id),
-        supabase.from("chapters").select("*").eq("user_id", user.id),
-        supabase.from("notes").select("*").eq("user_id", user.id),
       ])
 
+      if (authorsRes.error) throw authorsRes.error
       if (booksRes.error) throw booksRes.error
-      if (chaptersRes.error) throw chaptersRes.error
-      if (notesRes.error) throw notesRes.error
+
+      const userBookIds = (booksRes.data ?? []).map(b => b.id)
+
+      const [tocItemsRes, roundsRes] = await Promise.all([
+        userBookIds.length > 0 ? supabase.from("toc_items").select("*").in("book_id", userBookIds) : Promise.resolve({ data: [], error: null }),
+        userBookIds.length > 0 ? supabase.from("reading_rounds").select("*").in("book_id", userBookIds) : Promise.resolve({ data: [], error: null }),
+      ])
+
+      if (tocItemsRes.error) throw tocItemsRes.error
+      if (roundsRes.error) throw roundsRes.error
+
+      const tocItemIds = (tocItemsRes.data ?? []).map(t => t.id)
+      const roundIds = (roundsRes.data ?? []).map(r => r.id)
+
+      let statusesData: unknown[] = []
+      if (tocItemIds.length > 0 && roundIds.length > 0) {
+        const { data, error } = await supabase.from("chapter_statuses").select("*").in("toc_item_id", tocItemIds)
+        if (error) throw error
+        statusesData = data ?? []
+      }
 
       const data = {
         exported_at: new Date().toISOString(),
+        authors: authorsRes.data ?? [],
         books: booksRes.data ?? [],
-        chapters: chaptersRes.data ?? [],
-        notes: notesRes.data ?? [],
+        toc_items: tocItemsRes.data ?? [],
+        reading_rounds: roundsRes.data ?? [],
+        chapter_statuses: statusesData,
       }
 
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
@@ -67,6 +87,15 @@ export function DataSettings() {
         throw new Error("无效的 JSON 文件: 缺少 books 数组")
       }
 
+      const hasNewFormat = Array.isArray(data.toc_items) || Array.isArray(data.reading_rounds) || Array.isArray(data.chapter_statuses)
+      const hasOldFormat = Array.isArray(data.chapters) || Array.isArray(data.notes)
+      if (data.books.length === 0 && !hasNewFormat) {
+        throw new Error("JSON 文件中没有可导入的数据")
+      }
+      if (hasOldFormat && !hasNewFormat) {
+        throw new Error("此文件为旧版导出格式，新版导入不支持 chapters/notes 字段。请先升级到最新版重新导出")
+      }
+
       const supabase = createClient()
 
       if (data.books.length > 0) {
@@ -75,15 +104,24 @@ export function DataSettings() {
         if (error) throw error
       }
 
-      if (Array.isArray(data.chapters) && data.chapters.length > 0) {
-        const chaptersWithUser = data.chapters.map((c: Record<string, unknown>) => ({ ...c, user_id: user.id }))
-        const { error } = await supabase.from("chapters").upsert(chaptersWithUser, { onConflict: "id" })
+      if (Array.isArray(data.authors) && data.authors.length > 0) {
+        const authorsWithUser = data.authors.map((a: Record<string, unknown>) => ({ ...a, user_id: user.id }))
+        const { error } = await supabase.from("authors").upsert(authorsWithUser, { onConflict: "id" })
         if (error) throw error
       }
 
-      if (Array.isArray(data.notes) && data.notes.length > 0) {
-        const notesWithUser = data.notes.map((n: Record<string, unknown>) => ({ ...n, user_id: user.id }))
-        const { error } = await supabase.from("notes").upsert(notesWithUser, { onConflict: "id" })
+      if (Array.isArray(data.toc_items) && data.toc_items.length > 0) {
+        const { error } = await supabase.from("toc_items").upsert(data.toc_items, { onConflict: "id" })
+        if (error) throw error
+      }
+
+      if (Array.isArray(data.reading_rounds) && data.reading_rounds.length > 0) {
+        const { error } = await supabase.from("reading_rounds").upsert(data.reading_rounds, { onConflict: "id" })
+        if (error) throw error
+      }
+
+      if (Array.isArray(data.chapter_statuses) && data.chapter_statuses.length > 0) {
+        const { error } = await supabase.from("chapter_statuses").upsert(data.chapter_statuses, { onConflict: "toc_item_id,round_id" })
         if (error) throw error
       }
 
@@ -101,7 +139,7 @@ export function DataSettings() {
       {/* Export */}
       <div>
         <h2 className="text-[14px] font-semibold text-foreground mb-1">导出数据</h2>
-        <p className="text-[13px] text-muted-foreground mb-3">将所有书籍、章节和笔记导出为 JSON 文件</p>
+        <p className="text-[13px] text-muted-foreground mb-3">将所有书籍、目录和阅读进度导出为 JSON 文件</p>
         <button
           onClick={handleExport}
           disabled={exporting}

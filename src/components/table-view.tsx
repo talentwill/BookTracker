@@ -104,7 +104,7 @@ function Row({
   const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
     done: { bg: "bg-[#e6f9ee] dark:bg-[#1aae39]/20", text: "text-[#1aae39] dark:text-[#4ade80]", label: "已完成" },
     today: { bg: "bg-[#f2f9ff] dark:bg-[#097fe8]/20", text: "text-[#097fe8] dark:text-[#5bb8f5]", label: "今天" },
-    tomorrow: { bg: "bg-[#fff8ed]", text: "text-[#dd5b00]", label: "明天" },
+    tomorrow: { bg: "bg-[#fff8ed] dark:bg-[#dd5b00]/20", text: "text-[#dd5b00] dark:text-[#f59e0b]", label: "明天" },
     scheduled: { bg: "bg-[#f2f9ff] dark:bg-[#097fe8]/20", text: "text-[#097fe8] dark:text-[#5bb8f5]", label: "已排期" },
     unscheduled: { bg: "bg-muted", text: "text-muted-foreground", label: "未排期" },
   }

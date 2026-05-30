@@ -254,7 +254,7 @@ export default function AddBookPage() {
         <div className="flex gap-4">
           {/* Cover */}
           <div
-            className="relative w-[120px] h-[168px] shrink-0 rounded-lg overflow-hidden border border-border bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] group cursor-pointer"
+            className="relative w-[120px] h-[168px] shrink-0 rounded-lg overflow-hidden border border-border bg-[linear-gradient(135deg,#f6f5f4,#e8e5e0)] dark:bg-[linear-gradient(135deg,#2a2a2a,#1f1f1f)] group cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
             {displayCover && !imgError ? (

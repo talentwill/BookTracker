@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useProfile, useUpdateProfile } from "@/lib/hooks/use-profile"
 
 export function AiSettings() {
@@ -14,8 +14,16 @@ function AiSettingsForm({ profile }: { profile: ReturnType<typeof useProfile>["d
   const [apiKey, setApiKey] = useState(profile?.ai_api_key ?? "")
   const [baseUrl, setBaseUrl] = useState(profile?.ai_base_url ?? "")
   const [model, setModel] = useState(profile?.ai_model ?? "")
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   function handleSave() {
+    if (updateProfile.isPending) return
     updateProfile.mutate(
       {
         ai_api_key: apiKey,
@@ -25,7 +33,8 @@ function AiSettingsForm({ profile }: { profile: ReturnType<typeof useProfile>["d
       {
         onSuccess: () => {
           setSaved(true)
-          setTimeout(() => setSaved(false), 2000)
+          if (timerRef.current) clearTimeout(timerRef.current)
+          timerRef.current = setTimeout(() => setSaved(false), 2000)
         },
       }
     )
@@ -103,9 +112,10 @@ function AiSettingsForm({ profile }: { profile: ReturnType<typeof useProfile>["d
         {saved && <span className="text-[12px] text-green-600">已保存</span>}
         <button
           onClick={handleSave}
-          className="bg-[#0075de] text-white border-none rounded-lg px-5 py-2 text-[13px] font-semibold cursor-pointer hover:bg-[#005bab]"
+          disabled={updateProfile.isPending}
+          className="bg-[#0075de] text-white border-none rounded-lg px-5 py-2 text-[13px] font-semibold cursor-pointer hover:bg-[#005bab] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          保存设置
+          {updateProfile.isPending ? "保存中..." : "保存设置"}
         </button>
       </div>
     </div>

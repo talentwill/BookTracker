@@ -55,18 +55,23 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
     <Link href={`/books/${book.id}`} className="group">
       <div className="overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-lg">
         <div
-          className="relative flex h-[130px] items-center justify-center dark:hidden"
-          style={{ background: gradients[gradientIndex] }}
+          className="relative flex h-[130px] items-center justify-center"
+          style={{
+            ["--card-grad" as string]: gradients[gradientIndex],
+            ["--card-grad-dark" as string]: darkGradients[gradientIndex],
+            background: "var(--card-grad)",
+          }}
         >
+          <div className="absolute inset-0 hidden dark:block" style={{ background: "var(--card-grad-dark)" }} />
           {book.cover_url ? (
             <img
               src={book.cover_url.startsWith('http') ? book.cover_url : getCoverUrl(book.cover_url)}
               alt={book.title}
-              className="w-full h-full object-cover"
+              className="relative w-full h-full object-cover"
               onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
             />
           ) : (
-            <span className="text-[44px]">📘</span>
+            <span className="relative text-[44px]">📘</span>
           )}
           <div className="absolute right-2 top-2 flex gap-1">
             <span className="rounded-full bg-[#f2f9ff] dark:bg-[#097fe8]/20 px-2 py-0.5 text-[10px] font-semibold text-[#097fe8] dark:text-[#5bb8f5]">
@@ -74,31 +79,6 @@ export function BookCard({ book, author, round, items, statuses }: BookCardProps
             </span>
             {isComplete && (
               <span className="rounded-full bg-[#e6f9ee] dark:bg-[#1aae39]/20 px-2 py-0.5 text-[10px] font-semibold text-[#1aae39] dark:text-[#4ade80]">
-                ✓ 已完成
-              </span>
-            )}
-          </div>
-        </div>
-        <div
-          className="relative hidden dark:flex h-[130px] items-center justify-center"
-          style={{ background: darkGradients[gradientIndex] }}
-        >
-          {book.cover_url ? (
-            <img
-              src={book.cover_url.startsWith('http') ? book.cover_url : getCoverUrl(book.cover_url)}
-              alt={book.title}
-              className="w-full h-full object-cover"
-              onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-            />
-          ) : (
-            <span className="text-[44px]">📘</span>
-          )}
-          <div className="absolute right-2 top-2 flex gap-1">
-            <span className="rounded-full bg-[#097fe8]/20 px-2 py-0.5 text-[10px] font-semibold text-[#5bb8f5]">
-              第{round?.round_number ?? 1}轮
-            </span>
-            {isComplete && (
-              <span className="rounded-full bg-[#1aae39]/20 px-2 py-0.5 text-[10px] font-semibold text-[#4ade80]">
                 ✓ 已完成
               </span>
             )}
